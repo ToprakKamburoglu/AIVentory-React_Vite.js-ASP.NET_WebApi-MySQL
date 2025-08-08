@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\AIVentory-backend",
+    "\\AIVentory-backend\\Controllers",
+    "\\AIVentory-backend\\Helpers",
+    "\\AIVentory-backend\\wwwroot",
+    "\\AIVentory-backend\\wwwroot\\uploads",
+    "\\bin",
+    "\\obj"
+  ],
+  "SelectedNode": "\\AIVentory-backend\\Helpers\\JwtHelper.cs",
+  "PreviewInSolutionExplorer": false
+}
