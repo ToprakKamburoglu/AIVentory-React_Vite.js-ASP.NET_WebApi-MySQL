@@ -713,7 +713,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 📞 Contact
 
-**Project Owner**: Toprak Özbey
+**Project Owner**: Toprak Kamburoğlu
 - **Email**: toprakkamburoglu@gmail.com
 - **LinkedIn**: [linkedin.com/in/toprakkamburoglu](www.linkedin.com/in/toprak-kamburoğlu-627636293)
 - **GitHub**: [github.com/toprakkamburoglu](https://github.com/ToprakKamburoglu)
