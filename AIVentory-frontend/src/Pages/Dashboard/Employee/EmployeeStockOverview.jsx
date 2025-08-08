@@ -420,10 +420,6 @@ const EmployeeStockOverview = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
-          <Link to="/employee/stock/movements" className="btn btn-outline-main">
-            <i className="fas fa-history me-2"></i>
-            Hareketler
-          </Link>
           <Link to="/employee/stock/update" className="btn btn-main">
             <i className="fas fa-edit me-2"></i>
             Stok Güncelle
@@ -672,13 +668,6 @@ const EmployeeStockOverview = () => {
                         >
                           <i className="fas fa-eye"></i>
                         </button>
-                        <Link 
-                          to={`/employee/stock/movements?productId=${item.id}`}
-                          className="btn btn-sm btn-outline-main" 
-                          title="Geçmiş"
-                        >
-                          <i className="fas fa-history"></i>
-                        </Link>
                       </div>
                     </td>
                   </tr>
