@@ -1,7 +1,7 @@
 # 🤖 AIVentory - AI-Powered Inventory Management System
 
 <div align="center">
-  <img src="./public/images/AIVentory LogoGradient2.png" alt="AIVentory Logo" width="200"/>
+  <img src="./images/AIVentory LogoGradient.png" alt="AIVentory Logo" width="200"/>
   
   [![.NET Core](https://img.shields.io/badge/.NET%20Core-9.0-512BD4?style=flat-square&logo=.net)](https://dotnet.microsoft.com/)
   [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
