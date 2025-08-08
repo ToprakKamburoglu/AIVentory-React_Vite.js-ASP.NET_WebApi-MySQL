@@ -715,12 +715,10 @@ This project is licensed under the [MIT License](LICENSE).
 ## 📞 Contact
 
 **Project Owner**: Toprak Özbey
-- **Email**: toprak@aiventory.com
-- **LinkedIn**: [linkedin.com/in/toprakozbey](https://linkedin.com/in/toprakozbey)
-- **GitHub**: [github.com/toprakozbey](https://github.com/toprakozbey)
+- **Email**: toprakkamburoglu@gmail.com
+- **LinkedIn**: [linkedin.com/in/toprakkamburoglu](www.linkedin.com/in/toprak-kamburoğlu-627636293)
+- **GitHub**: [github.com/toprakkamburoglu](https://github.com/ToprakKamburoglu)
 
-**Project Website**: [aiventory.com](https://aiventory.com)
-**Demo**: [demo.aiventory.com](https://demo.aiventory.com)
 
 ---
 
