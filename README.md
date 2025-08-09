@@ -1,4 +1,4 @@
-# 🤖 AIVentory - AI-Powered Inventory Management System
+# AIVentory - AI-Powered Inventory Management System
 
 <div align="center">
   
