@@ -729,9 +729,3 @@ This project is licensed under the [MIT License](LICENSE).
 - All open source contributors
 
 ---
-
-<div align="center">
-  <p>Transform your inventory management with AIVentory! 🚀</p>
-  
-  **⭐ Don't forget to star the project if you like it!**
-</div>
