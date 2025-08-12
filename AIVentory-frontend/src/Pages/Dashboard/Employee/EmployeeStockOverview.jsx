@@ -696,25 +696,11 @@ const EmployeeStockOverview = () => {
                   </div>
 
                   <div className="card-body p-3">
-                    {/* Product Icon - Centered */}
-                    <div className="text-center mb-3">
-                      <div 
-                        className="d-flex align-items-center justify-content-center rounded-3 bg-light border position-relative overflow-hidden"
-                        style={{ 
-                          width: '100px', 
-                          height: '100px',
-                          margin: '0 auto'
-                        }}
-                      >
-                        <i className="fas fa-box text-main" style={{ fontSize: '2rem' }}></i>
-                      </div>
-                    </div>
-                    
                     {/* Product Info */}
                     <div className="text-center mb-3">
-                      <h6 className="card-title mb-1 fw-bold text-truncate" title={item.name}>
+                      <h6 className="card-title mb-1 fw-bold text-truncate justify-content-center" title={item.name}>
                         {item.name}
-                      </h6>
+                      </h6> 
                       <p className="text-muted small mb-2">
                         ID: #{item.id}
                       </p>
@@ -731,7 +717,7 @@ const EmployeeStockOverview = () => {
                     </div>
                     
                     {/* Stock Details Grid */}
-                    <div className="row g-2 mb-3">
+                    <div className="row g-2 mb-3 justify-content-center">
                       <div className="col-4">
                         <div className="text-center p-2 bg-light rounded-2">
                           <div className="fw-bold text-success fs-6">
