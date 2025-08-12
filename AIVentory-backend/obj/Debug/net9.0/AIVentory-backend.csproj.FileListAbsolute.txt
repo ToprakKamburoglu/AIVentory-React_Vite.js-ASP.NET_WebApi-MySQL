@@ -6,3 +6,12 @@ C:\Users\topra\OneDrive - Kadir Has University\Masaüstü\AIVentory-backend\obj\
 C:\Users\topra\OneDrive - Kadir Has University\Masaüstü\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.csproj.CoreCompileInputs.cache
 C:\Users\topra\OneDrive - Kadir Has University\Masaüstü\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\topra\OneDrive - Kadir Has University\Masaüstü\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.csproj.AssemblyReference.cache
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\rpswa.dswa.cache.json
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.AssemblyInfoInputs.cache
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.AssemblyInfo.cs
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.csproj.CoreCompileInputs.cache
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\topra\OneDrive - Kadir Has University\Belgeler\GitHub\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\AIVentory-backend\obj\Debug\net9.0\AIVentory-backend.sourcelink.json

@@ -1,7 +1,16 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Masa\u00FCst\u00FC\\AIVentory-backend\\AIVentory-backend\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:AIVentory-backend.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.csproj.user||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:AIVentory-backend.csproj.user||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +18,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -18,6 +27,32 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{74946827-37a0-11d2-a273-00c04f8ef4ff}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AIVentory-backend.http",
+              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.http",
+              "RelativeDocumentMoniker": "AIVentory-backend.http",
+              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.http",
+              "RelativeToolTip": "AIVentory-backend.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-08-11T13:10:37.872Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AIVentory-backend.csproj.user",
+              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.csproj.user",
+              "RelativeDocumentMoniker": "AIVentory-backend.csproj.user",
+              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\AIVentory-backend.csproj.user",
+              "RelativeToolTip": "AIVentory-backend.csproj.user",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003464|",
+              "WhenOpened": "2025-08-11T13:10:35.708Z",
+              "EditorCaption": ""
             }
           ]
         }

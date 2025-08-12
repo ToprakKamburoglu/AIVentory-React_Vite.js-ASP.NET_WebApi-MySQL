@@ -1,4 +1,6 @@
-﻿namespace AIVentory.API.Models.Common
+﻿using AIVentory_backend.Models.DTOs.AI;
+
+namespace AIVentory.API.Models.Common
 
 {
     public class ApiResponse<T>
@@ -37,6 +39,16 @@
                 Message = "Validation errors occurred",
                 Errors = errors
             };
+        }
+
+        internal static ApiResponse<AIAnalysisDto> Failure(string v)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static ApiResponse<object> From(ApiResponse<object> result)
+        {
+            throw new NotImplementedException();
         }
     }
 

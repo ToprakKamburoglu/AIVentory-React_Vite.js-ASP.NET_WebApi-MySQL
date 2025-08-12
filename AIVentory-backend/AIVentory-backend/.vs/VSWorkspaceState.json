@@ -1,10 +1,10 @@
 {
   "ExpandedNodes": [
     "",
+    "\\bin",
     "\\Data\\Configurations",
-    "\\wwwroot",
-    "\\wwwroot\\uploads"
+    "\\wwwroot"
   ],
-  "SelectedNode": "\\wwwroot\\uploads\\products",
+  "SelectedNode": "\\AIVentory-backend.http",
   "PreviewInSolutionExplorer": false
 }

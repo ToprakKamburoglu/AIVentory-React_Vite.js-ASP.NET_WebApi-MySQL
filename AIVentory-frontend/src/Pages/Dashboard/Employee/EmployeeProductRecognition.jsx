@@ -10,9 +10,9 @@ const EmployeeProductRecognition = () => {
       date: '2024-01-15 14:30',
       image: '/images/demo-product-1.jpg',
       result: {
-        productName: 'iPhone 15 Pro',
+        productName: 'iPhone 17 Pro',
         category: 'Elektronik',
-        brand: 'Apple',
+        brand: 'Apple', 
         confidence: 94.7,
         estimatedPrice: 67500.00,
         color: 'Titanyum Doğal',

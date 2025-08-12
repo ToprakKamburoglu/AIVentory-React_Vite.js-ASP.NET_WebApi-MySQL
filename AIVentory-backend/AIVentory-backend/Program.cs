@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -57,6 +58,10 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAIService, AIService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.Configure<OllamaConfiguration>(builder.Configuration.GetSection("Ollama"));
+builder.Services.AddScoped<SemanticKernelService>();
+builder.Services.AddScoped<IAIService, EnhancedAIService>();
 
 
 builder.Services.AddCors(options =>

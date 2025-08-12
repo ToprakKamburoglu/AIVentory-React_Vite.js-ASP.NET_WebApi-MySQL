@@ -12,6 +12,8 @@
         public List<PriceComparison> Comparisons { get; set; } = new();
         public string Reasoning { get; set; } = string.Empty;
         public decimal Confidence { get; set; }
+        public string Currency { get; internal set; }
+        public decimal EstimatedPrice { get; internal set; }
     }
 
     public class PriceComparison
@@ -20,4 +22,13 @@
         public decimal Price { get; set; }
         public string ProductName { get; set; } = string.Empty;
     }
+
+    public class PriceFactorDto
+    {
+        public string Factor { get; set; } = string.Empty;
+        public string Impact { get; set; } = string.Empty;
+        public decimal Weight { get; set; }
+    }
+
+
 }
