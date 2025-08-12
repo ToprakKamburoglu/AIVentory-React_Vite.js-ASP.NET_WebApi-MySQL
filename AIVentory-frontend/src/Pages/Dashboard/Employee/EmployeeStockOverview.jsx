@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 
 const EmployeeStockOverview = () => {
-  const { user } = useAuth();
   
-
+  const { user } = useAuth();
   const [stockData, setStockData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -420,10 +419,14 @@ const EmployeeStockOverview = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
+          <button className="btn btn-outline-secondary">
+            <i className="fa-solid fa-file-export me-2"></i>
+            Stok Raporu
+          </button>
           <Link to="/employee/stock/update" className="btn btn-main">
             <i className="fas fa-edit me-2"></i>
             Stok Güncelle
-          </Link>
+          </Link> 
         </div>
       </div>
 
@@ -485,26 +488,6 @@ const EmployeeStockOverview = () => {
           </div>
         </div>
       </div>
-
-      {/* Alerts */}
-      {(statusCounts.critical > 0 || statusCounts.out > 0) && (
-        <div className="alert alert-danger mb-4">
-          <div className="d-flex align-items-center">
-            <i className="fas fa-exclamation-triangle alert-icon"></i>
-            <div className="flex-grow-1">
-              <strong>Kritik Stok Uyarısı!</strong>
-              <p className="mb-0">
-                {statusCounts.out > 0 && `${statusCounts.out} ürün tükendi. `}
-                {statusCounts.critical > 0 && `${statusCounts.critical} ürün kritik seviyede.`}
-                Acil sipariş vermeniz önerilir.
-              </p>
-            </div>
-            <Link to="/employee/ai/recommendations" className="btn btn-outline-danger">
-              AI Önerilerini Gör
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* Filters and Search */}
       <div className="dashboard-card mb-4">
@@ -594,16 +577,16 @@ const EmployeeStockOverview = () => {
             <thead>
               <tr>
                 <th>Ürün</th>
-                <th>Kategori</th>
-                <th>Current Stock</th>
-                <th>Reserved Stock</th>
-                <th>Available Stock</th>
-                <th>Min. Stock</th>
-                <th>Durum</th>
-                <th>Birim Fiyat</th>
-                <th>Toplam Değer</th>
-                <th>Son Güncelleme</th>
-                <th>İşlemler</th>
+                <th style={{ textAlign: 'center' }}>Kategori</th>
+                <th style={{ textAlign: 'center' }}>Current Stock</th>
+                <th style={{ textAlign: 'center' }}>Reserved Stock</th>
+                <th style={{ textAlign: 'center' }}>Available Stock</th>
+                <th style={{ textAlign: 'center' }}>Minimum Stock</th>
+                <th style={{ textAlign: 'center' }}>Durum</th>
+                <th style={{ textAlign: 'center' }}>Birim Fiyat</th>
+                <th style={{ textAlign: 'center' }}>Toplam Değer</th>
+                <th style={{ textAlign: 'center' }}>Son Güncelleme</th>
+                <th style={{ textAlign: 'center' }}>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -613,9 +596,6 @@ const EmployeeStockOverview = () => {
                   <tr key={item.id}>
                     <td>
                       <div className="d-flex align-items-center">
-                        <div className="me-3">
-                          <i className="fas fa-box text-main"></i>
-                        </div>
                         <div>
                           <div className="fw-bold">{item.name}</div>
                           <div className="small text-gray">ID: #{item.id}</div>
@@ -628,29 +608,29 @@ const EmployeeStockOverview = () => {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className="badge badge-outline badge-main">{item.category}</span>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className="fw-bold fs-5 text-primary">{item.currentStock}</span>
                     </td>
-                    <td>
-                      <span className="fw-bold text-warning">{item.reservedStock}</span>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-warning">{item.reservedStock}</span>
                     </td>
-                    <td>
-                      <span className="fw-bold text-success">{item.availableStock}</span>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-success">{item.availableStock}</span>
                     </td>
-                    <td>{item.minStock}</td>
+                    <td className="text-center fs-5">{item.minStock}</td>
                     <td>
                       <span className={`badge badge-${statusInfo.color}`}>
                         <i className={`${statusInfo.icon} me-1`}></i>
                         {statusInfo.text}
                       </span>
                     </td>
-                    <td>₺{item.price.toLocaleString()}</td>
-                    <td className="fw-bold">₺{item.totalValue.toLocaleString()}</td>
+                    <td className="text-center">₺{item.price.toLocaleString()}</td>
+                    <td className="fw-bold text-center">₺{item.totalValue.toLocaleString()}</td>
                     <td>
-                      <div className="small text-gray">{item.lastUpdate}</div>
+                      <div className="small text-center">{item.lastUpdate}</div>
                     </td>
                     <td>
                       <div className="d-flex gap-1">
@@ -710,15 +690,6 @@ const EmployeeStockOverview = () => {
                           >
                             <i className="fas fa-eye me-2 text-info"></i>Detaylar
                           </button>
-                        </li>
-                        <li><hr className="dropdown-divider" /></li>
-                        <li>
-                          <Link 
-                            to={`/employee/stock/movements?productId=${item.id}`}
-                            className="dropdown-item"
-                          >
-                            <i className="fas fa-history me-2 text-secondary"></i>Geçmiş
-                          </Link>
                         </li>
                       </ul>
                     </div>
@@ -1181,67 +1152,6 @@ const EmployeeStockOverview = () => {
           </div>
         </div>
       )}
-
-      {/* Quick Actions */}
-      <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-bolt text-warning me-2"></i>
-                Hızlı İşlemler
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="d-grid gap-2">
-                <Link to="/employee/stock/movements" className="btn btn-outline-main">
-                  <i className="fas fa-history me-2"></i>
-                  Stok Hareketlerini Görüntüle
-                </Link>
-                <Link to="/employee/stock/update" className="btn btn-outline-main">
-                  <i className="fas fa-edit me-2"></i>
-                  Stok Güncelleme Sayfası
-                </Link>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-download me-2"></i>
-                  Stok Raporu İndir
-                </button>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-bell me-2"></i>
-                  Stok Uyarılarını Ayarla
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-robot text-main me-2"></i>
-                AI Önerileri
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="ai-recommendation mb-3">
-                <div className="recommendation-text">
-                  <strong>Kritik:</strong> {statusCounts.out > 0 ? `${statusCounts.out} ürün tükendi.` : 'Tüm ürünler stokta mevcut.'}
-                </div>
-              </div>
-              <div className="ai-recommendation mb-3">
-                <div className="recommendation-text">
-                  <strong>Öneri:</strong> {statusCounts.critical > 0 ? `${statusCounts.critical} ürün kritik seviyede. Acil sipariş öneriliyor.` : 'Stok seviyeleri normal görünüyor.'}
-                </div>
-              </div>
-              <Link to="/employee/ai/recommendations" className="btn btn-main btn-sm">
-                <i className="fas fa-magic me-1"></i>
-                Tüm Önerileri Gör
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Custom CSS */}
       <style>{`

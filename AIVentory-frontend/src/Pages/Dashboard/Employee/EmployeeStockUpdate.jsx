@@ -576,7 +576,7 @@ const EmployeeStockUpdate = () => {
       <div className="d-flex justify-content-between align-items-center mb-4 pt-4">
         <div>
           <h1 className="text-main mb-2">
-            <i className="fas fa-edit me-2"></i>
+            <i className="fas fa-edit text-main me-2"></i>
             Stok Güncelleme
           </h1>
           <p className="text-gray mb-0">
@@ -588,7 +588,7 @@ const EmployeeStockUpdate = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
-          <Link to="/employee/stock" className="btn btn-outline-main">
+          <Link to="/employee/stock" className="btn btn-main">
             <i className="fas fa-warehouse me-2"></i>
             Stok Durumu
           </Link>
@@ -663,7 +663,7 @@ const EmployeeStockUpdate = () => {
       </div>
 
       {/* Filters */}
-      <div className="dashboard-card mb-4">
+      <div className="dashboard-card mb-4 p-3">
         <div className="card-body">
           <div className="row align-items-center">
             <div className="col-md-3">
@@ -733,7 +733,7 @@ const EmployeeStockUpdate = () => {
 
             <div className="col-md-2">
               <label className="form-label">Hızlı İşlemler</label>
-              <button 
+              <button  
                 className="btn btn-secondary w-100"
                 onClick={() => setShowBarcodeModal(true)}
               >
@@ -747,8 +747,8 @@ const EmployeeStockUpdate = () => {
 
       {/* Bulk Update Panel */}
       {updateMode === 'bulk' && (
-        <div className="dashboard-card mb-4">
-          <div className="card-header">
+        <div className="dashboard-card mb-4 p-3">
+          <div className="card-header pb-3">
             <h5 className="card-title">
               <i className="fas fa-list text-main me-2"></i>
               Toplu Stok Güncelleme
@@ -855,10 +855,6 @@ const EmployeeStockUpdate = () => {
       {/* Stock Table */}
       <div className="dashboard-card">
         <div className="card-header d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">
-            <i className="fas fa-warehouse text-main me-2"></i>
-            Stock Kontrol Paneli ({stockData.length})
-          </h5>
           {updateMode === 'bulk' && stockData.length > 0 && (
             <button 
               className="btn btn-sm btn-outline-main"
@@ -876,14 +872,13 @@ const EmployeeStockUpdate = () => {
                 <tr>
                   {updateMode === 'bulk' && <th width="50">Seç</th>}
                   <th>Ürün</th>
-                  <th>Kategori</th>
-                  <th>Current Stock</th>
-                  <th>Reserved Stock</th>
-                  <th>Available Stock</th>
-                  <th>Min. Stock</th>
-                  <th>Durum</th>
-                  <th>Güncelleme Alanları</th>
-                  <th>İşlemler</th>
+                  <th style={{ textAlign: 'center' }}>Kategori</th>
+                  <th style={{ textAlign: 'center' }}>Current Stock</th>
+                  <th style={{ textAlign: 'center' }}>Reserved Stock</th>
+                  <th style={{ textAlign: 'center' }}>Available Stock</th>
+                  <th style={{ textAlign: 'center' }}>Minimum Stock</th>
+                  <th style={{ textAlign: 'center' }}>Durum</th>
+                  <th style={{ textAlign: 'center' }}>Güncelleme Alanları</th>
                 </tr>
               </thead>
               <tbody>
@@ -901,9 +896,6 @@ const EmployeeStockUpdate = () => {
                     )}
                     <td>
                       <div className="d-flex align-items-center">
-                        <div className="me-3">
-                          <i className="fas fa-box text-main"></i>
-                        </div>
                         <div>
                           <div className="fw-bold">{stockItem.productName}</div>
                           {stockItem.brand && (
@@ -915,20 +907,20 @@ const EmployeeStockUpdate = () => {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className="badge badge-outline badge-main">{stockItem.category}</span>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className="fw-bold fs-5 text-primary">{stockItem.currentStock}</span>
                     </td>
-                    <td>
-                      <span className="fw-bold text-warning">{stockItem.reservedStock}</span>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-warning">{stockItem.reservedStock}</span>
                     </td>
-                    <td>
-                      <span className="fw-bold text-success">{stockItem.availableStock}</span>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-success">{stockItem.availableStock}</span>
                     </td>
-                    <td>
-                      <span className="fw-bold text-secondary">{stockItem.minimumStock}</span>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-secondary">{stockItem.minimumStock}</span>
                     </td>
                     <td>
                       <span className={`badge badge-${getStockStatusColor(stockItem.stockStatus)}`}>
@@ -936,7 +928,7 @@ const EmployeeStockUpdate = () => {
                       </span>
                     </td>
                     <td>
-                      <div className="row g-2">
+                      <div className="row g-2 justify-content-end">
                         {/* Current Stock Güncelleme */}
                         <div className="col-6">
                           <label className="form-label small">Yeni Current</label>
@@ -962,7 +954,7 @@ const EmployeeStockUpdate = () => {
                         </div>
 
                         {/* Reserved Stock Güncelleme */}
-                        <div className="col-6">
+                        <div className="col-5">
                           <label className="form-label small">Yeni Reserved</label>
                           <div className="d-flex align-items-center gap-1">
                             <input
@@ -987,7 +979,7 @@ const EmployeeStockUpdate = () => {
                         </div>
 
                         {/* Minimum Stock Güncelleme */}
-                        <div className="col-12">
+                        <div className="col-8">
                           <label className="form-label small">Yeni Minimum</label>
                           <div className="d-flex align-items-center gap-1">
                             <input
@@ -1009,26 +1001,6 @@ const EmployeeStockUpdate = () => {
                             </button>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-column gap-1">
-                        <Link 
-                          to={`/employee/stock/movements?productId=${stockItem.id}`}
-                          className="btn btn-sm btn-outline-main" 
-                          title="Stok Hareketleri"
-                        >
-                          <i className="fas fa-history me-1"></i>
-                          Geçmiş
-                        </Link>
-                        <Link 
-                          to={`/employee/products/${stockItem.id}`}
-                          className="btn btn-sm btn-outline-info" 
-                          title="Ürün Detayları"
-                        >
-                          <i className="fas fa-info me-1"></i>
-                          Detay
-                        </Link>
                       </div>
                     </td>
                   </tr>
@@ -1054,72 +1026,65 @@ const EmployeeStockUpdate = () => {
           </Link>
         </div>
       )}
-
-      {/* Quick Actions & Tips */}
+      
+      {/* Quick Actions & Tips - Güzelleştirilmiş */}              
       <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-bolt text-warning me-2"></i>
-                Hızlı İşlemler
+        <div className="col-md-12">
+          <div className="dashboard-card shadow-sm">
+            <div className="card-header fw-bold p-3 rounded-top">
+              <h5 className="card-title mb-0 d-flex align-items-center">
+                <i className="fas fa-bolt text-warning me-3 fs-5"></i>
+                <span className="fw-bold">Hızlı İşlemler</span>
               </h5>
             </div>
-            <div className="card-body">
-              <div className="d-grid gap-2">
-                <button 
-                  className="btn btn-outline-main"
-                  onClick={() => setShowBarcodeModal(true)}
-                >
-                  <i className="fas fa-barcode me-2"></i>
-                  Barkod ile Ürün Bul
-                </button>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-upload me-2"></i>
-                  Excel'den Toplu Yükle
-                </button>
-                <Link to="/employee/stock/movements" className="btn btn-outline-main">
-                  <i className="fas fa-history me-2"></i>
-                  Tüm Stok Hareketleri
-                </Link>
-                <Link to="/employee/stock" className="btn btn-outline-main">
-                  <i className="fas fa-warehouse me-2"></i>
-                  Stok Durumu Raporu
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-info-circle text-main me-2"></i>
-                Stock Güncelleme Rehberi
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="tips-list">
-                <div className="tip-item mb-3">
-                  <i className="fas fa-cube text-primary me-2"></i>
-                  <small><strong>Current Stock:</strong> Toplam fiziksel stok miktarı</small>
+            <div className="card-body p-2">
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <div className="tip-item p-3 border-start border-primary border-4 bg-primary bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
+                      onClick={() => setShowBarcodeModal(true)}
+                      style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-barcode"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-primary mb-1">Barkod ile Ürün Bul</div>
+                      <small className="text-muted">Barkod okutarak hızlıca ürün bulun</small>
+                    </div>
+                  </div>
                 </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-lock text-warning me-2"></i>
-                  <small><strong>Reserved Stock:</strong> Sipariş verilmiş, henüz çıkmamış</small>
+                
+                <div className="col-md-4">
+                  <div className="tip-item p-3 border-start border-success border-4 bg-success bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
+                      style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-upload"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-success mb-1">Excel'den Toplu Yükle</div>
+                      <small className="text-muted">Excel dosyasından toplu stok güncelleme</small>
+                    </div>
+                  </div>
                 </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-check-circle text-success me-2"></i>
-                  <small><strong>Available Stock:</strong> Satışa hazır stok (Current - Reserved)</small>
-                </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-chart-line text-secondary me-2"></i>
-                  <small><strong>Minimum Stock:</strong> Uyarı seviyesi</small>
-                </div>
-                <div className="tip-item">
-                  <i className="fas fa-history text-info me-2"></i>
-                  <small>Tüm değişiklikler kayıt altına alınır ve izlenebilir</small>
+                
+                <div className="col-md-4">
+                  <Link 
+                    to="/employee/stock" 
+                    className="tip-item p-3 border-start border-warning border-4 bg-warning bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect text-decoration-none"
+                    style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-warehouse"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-warning mb-1">Stok Durumu Raporu</div>
+                      <small className="text-muted">Detaylı stok durumu ve raporlar</small>
+                    </div>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -1127,9 +1092,21 @@ const EmployeeStockUpdate = () => {
         </div>
       </div>
 
+      <style>
+      {`
+        .hover-effect:hover {
+          transform: translateY(-2px);
+        }
+        
+        .hover-effect:active {
+          transform: translateY(0);
+        }
+      `}
+      </style>
+
       {/* Stok Türleri Açıklama Kartı */}
-      <div className="dashboard-card mt-4">
-        <div className="card-header">
+      <div className="dashboard-card mt-4 p-3">
+        <div className="card-header pb-4">
           <h5 className="card-title">
             <i className="fas fa-info-circle text-main me-2"></i>
             Stok Türleri Rehberi
@@ -1191,41 +1168,43 @@ const EmployeeStockUpdate = () => {
       </div>
 
       {/* Güvenlik Bilgisi */}
-      <div className="dashboard-card mt-4">
-        <div className="card-header">
-          <h5 className="card-title">
-            <i className="fas fa-shield-alt text-success me-2"></i>
-            Güvenlik ve İzlenebilirlik
-          </h5>
-        </div>
+      <div className="dashboard-card mt-4 p-3">
+        <div className="card-header"></div>
         <div className="card-body">
           <div className="row">
             <div className="col-md-4">
+              <div className="p-3 bg-primary bg-opacity-10 rounded">
               <div className="d-flex align-items-center mb-2">
                 <i className="fas fa-building text-primary me-2"></i>
-                <strong>Şirket İzolasyonu</strong>
+                <strong className='text-main'>Şirket İzolasyonu</strong>
               </div>
               <small className="text-muted">
-                Sadece kendi şirketinizin ({user.companyName || 'N/A'}) ürünlerini görebilir ve güncelleyebilirsiniz.
+                Sadece kendi şirketinizin ({user.companyName || 'N/A'}) ürünlerini inceleyebilir ve gerekli durumlarda güncelleyebilirsiniz.
               </small>
             </div>
-            <div className="col-md-4">
-              <div className="d-flex align-items-center mb-2">
-                <i className="fas fa-history text-info me-2"></i>
-                <strong>Tam İzlenebilirlik</strong>
-              </div>
-              <small className="text-muted">
-                Tüm stok değişiklikleri kayıt altına alınır ve "Geçmiş" butonundan görüntülenebilir.
-              </small>
             </div>
             <div className="col-md-4">
-              <div className="d-flex align-items-center mb-2">
-                <i className="fas fa-user-shield text-success me-2"></i>
-                <strong>Kullanıcı Yetkileri</strong>
+              <div className="p-3 bg-warning bg-opacity-10 rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <i className="fa-solid fa-box-archive text-warning me-2"></i>
+                  <strong className='text-warning'>Stok Güncelleme</strong>
+                </div>
+                <small className="text-muted">
+                  Tüm stok değişiklikleri otomatik olarak kayıt altına alınır, bu kayıtlar güvenli bir şekilde saklanır ve görüntülenebilir.
+                </small>
               </div>
-              <small className="text-muted">
-                Sadece yetkili olduğunuz stok türlerini güncelleyebilirsiniz.
-              </small>
+            </div>
+            
+            <div className="col-md-4">
+               <div className="p-3 bg-success bg-opacity-10 rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <i className="fas fa-user-shield text-success me-2"></i>
+                  <strong className='text-success'>Kullanıcı Yetkileri</strong>
+                </div>
+                <small className="text-muted">
+                  Sadece yetkilendirildiğiniz stok türlerini güncelleyebilir, diğer stok türlerinde ise yalnızca görüntüleme yapabilirsiniz.
+                </small>
+              </div>
             </div>
           </div>
         </div>
