@@ -628,14 +628,14 @@ const handleExportCSV = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
+          <button className="btn btn-outline-secondary" onClick={handleExportCSV}>
+            <i className="fas fa-download me-2"></i>
+            Dışa Aktar
+          </button>
           <Link to="/employee/products/add" className="btn btn-main">
             <i className="fas fa-plus me-2"></i>
             Yeni Ürün
           </Link>
-          <button className="btn btn-outline-main" onClick={handleExportCSV}>
-            <i className="fas fa-download me-2"></i>
-            Dışa Aktar
-          </button>
         </div>
       </div>
 
@@ -803,14 +803,14 @@ const handleExportCSV = () => {
             <thead>
               <tr>
                 <th>Ürün</th>
-                <th>Kategori</th>
-                <th>Marka</th>
-                <th>Fiyat</th>
-                <th>Stok</th>
-                <th>Durum</th>
-                <th>Kar Marjı</th>
-                <th>Son Güncelleme</th>
-                <th>İşlemler</th>
+                <th className="text-center">Kategori</th>
+                <th className="text-center">Marka</th>
+                <th className="text-center">Fiyat</th>
+                <th className="text-center">Stok</th>
+                <th className="text-center">Durum</th>
+                <th className="text-center">Kar Marjı</th>
+                <th className="text-center">Son Güncelleme</th>
+                <th className="text-center">İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -872,11 +872,11 @@ const handleExportCSV = () => {
                     <td>
                       <span className="badge badge-outline badge-main">{product.category}</span>
                     </td>
-                    <td>{product.brand}</td>
+                    <td className="fw-bold">{product.brand}</td>
                     <td>
                       <div>
                         <div className="fw-bold">₺{product.price.toLocaleString()}</div>
-                        <small className="text-gray">Maliyet: ₺{product.cost.toLocaleString()}</small>
+                        <small className="text-gray justify-content-center">Maliyet: ₺{product.cost.toLocaleString()}</small>
                       </div>
                     </td>
                     <td>
@@ -895,13 +895,13 @@ const handleExportCSV = () => {
                         {stockInfo.text}
                       </span>
                     </td>
-                    <td>
+                    <td className="text-center">
                       <span className="fw-bold text-success">
                         %{getProfitMargin(product.price, product.cost)}
                       </span>
                     </td>
-                    <td>
-                      <small className="text-gray">{product.lastUpdate}</small>
+                    <td className="text-center">
+                      <small className="fw-bold">{product.lastUpdate}</small>
                     </td>
                     <td>
                       <div className="d-flex gap-1">

@@ -18,7 +18,6 @@ const EmployeeDashboard = () => {
     productsByCategory: []
   });
 
-
   const API_BASE_URL = 'http://localhost:5000/api';
 
   useEffect(() => {
@@ -212,7 +211,7 @@ const EmployeeDashboard = () => {
           <div className="stat-header">
             <div className="stat-title">Stok Değeri</div>
             <div className="stat-icon">
-              <i className="fas fa-lira-sign"></i>
+              <i className="fa-solid fa-turkish-lira-sign"></i>
             </div>
           </div>
           <div className="stat-value">₺{dashboardData.todaysStats.totalValue.toLocaleString('tr-TR')}</div>
@@ -254,78 +253,93 @@ const EmployeeDashboard = () => {
         </Link>
       </div>
 
+      {/* Güzelleştirilmiş Dashboard Kartları */}
       <div className="row" style={{ margin: '0 -12px' }}>
         {/* İlk Satır - Sol: Son Eklenen Ürünler, Sağ: Kategori Dağılımı */}
         <div className="col-lg-6 col-md-6 mb-4" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
-          <div className="dashboard-card" style={{ height: '100%' }}>
-            <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 className="card-title">
-                <i className="fas fa-clock text-main me-2"></i>
-                Son Eklenen Ürünler
-              </h3>
-              <span className="badge badge-main">
-                {dashboardData.recentProducts.length} ürün
-              </span>
+          <div className="dashboard-card shadow-lg border-0" style={{ height: '100%', borderRadius: '15px', overflow: 'hidden' }}>
+            <div className="card-header bg-gradient-primary text-white" style={{ padding: '20px 24px', border: 'none' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0 d-flex align-items-center">
+                  <span className="fw-bold">Son Eklenen Ürünler</span>
+                </h5>
+                <span className="fw-bold text-white">
+                  {dashboardData.recentProducts.length} ürün
+                </span>
+              </div>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               {dashboardData.recentProducts.length > 0 ? (
-                dashboardData.recentProducts.map(product => (
-                  <div key={product.id} className="d-flex align-items-center py-3 border-bottom" style={{ marginBottom: '16px', paddingBottom: '16px' }}>
-                    <div className="me-3">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.name}
-                          style={{ 
-                            width: '40px', 
-                            height: '40px', 
-                            objectFit: 'cover', 
-                            borderRadius: '8px' 
-                          }}
-                        />
-                      ) : (
-                        <div 
-                          style={{ 
-                            width: '40px', 
-                            height: '40px', 
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <i className="fas fa-image text-gray"></i>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="fw-bold small" style={{ marginBottom: '4px' }}>{product.name}</div>
-                      <div className="text-gray small">
-                        {formatPrice(product.price)} • {product.currentStock} adet
+                dashboardData.recentProducts.map((product) => (
+                  <div key={product.id} className="product-item bg-white rounded-3 shadow-sm p-3 mb-3 hover-lift" 
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="d-flex align-items-center">
+                      <div className="product-image me-3">
+                        {product.imageUrl ? (
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="rounded-circle border"
+                            style={{ 
+                              width: '50px', 
+                              height: '50px', 
+                              objectFit: 'cover',
+                              border: '3px solid #e9ecef !important'
+                            }}
+                          />
+                        ) : (
+                          <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center border"
+                               style={{ 
+                                 width: '50px', 
+                                 height: '50px',
+                                 border: '3px solid #e9ecef !important'
+                               }}>
+                            <i className="fas fa-image text-primary"></i>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="text-end">
-                      <div className="small text-gray">
-                        {formatDate(product.createdAt)}
+                      <div className="product-info flex-grow-1">
+                        <div className="fw-bold text-dark mb-1" style={{ fontSize: '14px' }}>{product.name}</div>
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="text-success fw-semibold" style={{ fontSize: '13px' }}>
+                            <i className="fas fa-lira-sign me-1"></i>
+                            {formatPrice(product.price)}
+                          </span>
+                          <span className="text-muted" style={{ fontSize: '12px' }}>•</span>
+                          <span className="text-primary fw-semibold" style={{ fontSize: '13px' }}>
+                            <i className="fas fa-boxes me-1"></i>
+                            {product.currentStock} adet
+                          </span>
+                        </div>
+                      </div>
+                      <div className="product-date text-end">
+                        <div className="badge bg-secondary bg-opacity-10 text-secondary">
+                          <i className="fas fa-calendar-alt me-1"></i>
+                          {formatDate(product.createdAt)}
+                        </div>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4" style={{ padding: '32px 16px' }}>
-                  <i className="fas fa-box text-gray fs-1 mb-3"></i>
-                  <p className="text-gray" style={{ marginBottom: '16px' }}>Henüz ürün eklenmemiş</p>
-                  <Link to="/employee/products/add" className="btn btn-sm btn-main">
+                <div className="empty-state text-center py-5">
+                  <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                       style={{ width: '80px', height: '80px' }}>
+                    <i className="fas fa-box text-primary fs-1"></i>
+                  </div>
+                  <h6 className="text-muted mb-3">Henüz ürün eklenmemiş</h6>
+                  <Link to="/employee/products/add" className="btn btn-primary btn-sm px-4">
+                    <i className="fas fa-plus me-2"></i>
                     İlk Ürünü Ekle
                   </Link>
                 </div>
               )}
               
               {dashboardData.recentProducts.length > 0 && (
-                <div className="text-center mt-3" style={{ marginTop: '20px' }}>
-                  <Link to="/employee/products" className="btn btn-outline-main btn-sm">
-                    Tüm Ürünler
+                <div className="text-center mt-4">
+                  <Link to="/employee/products" className="btn btn-outline-primary btn-sm px-4">
+                    <i className="fas fa-arrow-right me-2"></i>
+                    Tüm Ürünleri Gör
                   </Link>
                 </div>
               )}
@@ -334,40 +348,60 @@ const EmployeeDashboard = () => {
         </div>
 
         <div className="col-lg-6 col-md-6 mb-4" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
-          <div className="dashboard-card" style={{ height: '100%' }}>
-            <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 className="card-title">
-                <i className="fas fa-chart-pie text-main me-2"></i>
-                Kategori Dağılımı
-              </h3>
+          <div className="dashboard-card shadow-lg border-0" style={{ height: '100%', borderRadius: '15px', overflow: 'hidden' }}>
+            <div className="card-header bg-gradient-primary text-white" style={{ padding: '20px 24px', border: 'none' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0 d-flex align-items-center">
+                  <span className="fw-bold">Kategori Dağılımı</span>
+                </h5>
+                <span className="fw-bold text-white">
+                  {dashboardData.productsByCategory.length} kategori
+                </span>
+              </div>
             </div>
-            <div className="card-body" style={{ padding: '24px' }}>
+            <div className="card-body" style={{ padding: '24px' }}> 
               {dashboardData.productsByCategory.length > 0 ? (
                 dashboardData.productsByCategory.slice(0, 5).map((category, index) => (
-                  <div key={index} className="d-flex align-items-center justify-content-between py-3 border-bottom" style={{ marginBottom: '16px', paddingBottom: '16px' }}>
-                    <div className="d-flex align-items-center">
-                      <div className="me-3">
-                        <i className="fas fa-tag text-main"></i>
+                  <div key={index} className="category-item bg-white rounded-3 shadow-sm p-3 mb-3 hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center flex-grow-1">
+                        <div className="category-icon bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style={{ width: '50px', height: '50px' }}>
+                          <i className="fas fa-tag text-success fs-5"></i>
+                        </div>
+                        <div className="category-info">
+                          <div className="fw-bold text-dark mb-1" style={{ fontSize: '14px' }}>{category.name}</div>
+                          <div className="text-muted" style={{ fontSize: '13px' }}>
+                            <i className="fas fa-cube me-1"></i> 
+                            {category.count} ürün 
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="fw-bold" style={{ marginBottom: '4px' }}>{category.name}</div>
-                        <div className="small text-gray">{category.count} ürün</div>
+                      <div className="category-progress text-end">
+                        <div className="text-success fw-bold mb-1" style={{ fontSize: '14px' }}>
+                          %{Math.round((category.count / dashboardData.todaysStats.totalProducts) * 100)}
+                        </div>
+                        <div className="progress" style={{ width: '80px', height: '8px', borderRadius: '10px' }}>
+                          <div 
+                            className="progress-bar bg-gradient-success" 
+                            style={{ 
+                              width: `${(category.count / dashboardData.todaysStats.totalProducts) * 100}%`,
+                              borderRadius: '10px'
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="progress" style={{ width: '60px', height: '6px' }}>
-                      <div 
-                        className="progress-bar bg-main" 
-                        style={{ 
-                          width: `${(category.count / dashboardData.todaysStats.totalProducts) * 100}%` 
-                        }}
-                      ></div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4" style={{ padding: '32px 16px' }}>
-                  <i className="fas fa-tags text-gray fs-1 mb-3"></i>
-                  <p className="text-gray">Kategori bulunamadı</p>
+                <div className="empty-state text-center py-5">
+                  <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                       style={{ width: '80px', height: '80px' }}>
+                    <i className="fas fa-tags text-success fs-1"></i>
+                  </div>
+                  <h6 className="text-muted">Kategori bulunamadı</h6>
                 </div>
               )}
             </div>
@@ -376,46 +410,68 @@ const EmployeeDashboard = () => {
 
         {/* İkinci Satır - Sol: Stok Uyarıları, Sağ: Özet Bilgiler */}
         <div className="col-lg-6 col-md-6 mb-4" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
-          <div className="dashboard-card" style={{ height: '100%' }}>
-            <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 className="card-title">
-                <i className="fas fa-exclamation-triangle text-warning me-2"></i>
-                Stok Uyarıları
-              </h3>
-              <span className="badge badge-warning">
-                {dashboardData.stockAlerts.length} uyarı
-              </span>
+          <div className="dashboard-card shadow-lg border-0" style={{ height: '100%', borderRadius: '15px', overflow: 'hidden' }}>
+            <div className="card-header bg-gradient-primary text-dark" style={{ padding: '20px 24px', border: 'none' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0 d-flex align-items-center">
+                  <span className="fw-bold text-white">Stok Uyarıları</span>
+                </h5>
+                <span className="fw-bold text-white">
+                  {dashboardData.stockAlerts.length} uyarı
+                </span>
+              </div>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
               {dashboardData.stockAlerts.length > 0 ? (
                 dashboardData.stockAlerts.map(alert => (
-                  <div key={alert.id} className="d-flex align-items-center justify-content-between py-3 border-bottom" style={{ marginBottom: '16px', paddingBottom: '16px' }}>
-                    <div className="d-flex align-items-center">
-                      <div className="me-3">
-                        <i className={`fas fa-exclamation-circle text-${getStockStatusColor(alert.status)}`}></i>
-                      </div>
-                      <div>
-                        <div className="fw-bold" style={{ marginBottom: '4px' }}>{alert.product}</div>
-                        <div className="small text-gray">
-                          {alert.status === 'out' ? 'Stok tükendi' : `${alert.stock} / ${alert.minStock} adet`}
+                  <div key={alert.id} className="alert-item bg-white rounded-3 shadow-sm p-3 mb-3 hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center flex-grow-1">
+                        <div className={`alert-icon bg-${getStockStatusColor(alert.status)} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3`}
+                             style={{ width: '50px', height: '50px' }}>
+                          <i className={`fas fa-exclamation-circle text-${getStockStatusColor(alert.status)} fs-5`}></i>
                         </div>
+                        <div className="">
+                          <div className="fw-bold text-dark mb-1" style={{ fontSize: '14px' }}>{alert.product}</div>
+                            <div className="text-muted" style={{ fontSize: '13px' }}>
+                              {alert.status === 'out' ? (
+                                <span className="text-danger">
+                                  <i className="fas fa-times-circle me-1"></i>
+                                  Stok tükendi
+                                </span>
+                              ) : (
+                                <span className="text-warning">
+                                  <i className="fas fa-exclamation-triangle me-1"></i>
+                                  {alert.stock} / {alert.minStock} adet kaldı
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      <div className="alert-badge">
+                        <span className={`badge bg-${getStockStatusColor(alert.status)} px-3 py-2 fw-bold`}>
+                          {alert.status === 'out' ? 'Tükendi' : 'Düşük'}
+                        </span>
                       </div>
                     </div>
-                    <span className={`badge badge-${getStockStatusColor(alert.status)}`}>
-                      {alert.status === 'out' ? 'Tükendi' : 'Düşük'}
-                    </span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4" style={{ padding: '32px 16px' }}>
-                  <i className="fas fa-check-circle text-success fs-1 mb-3"></i>
-                  <p className="text-success">Tüm ürünlerin stoku yeterli!</p>
+                <div className="empty-state text-center py-5">
+                  <div className="bg-gradient-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                       style={{ width: '80px', height: '80px' }}>
+                    <i className="fas fa-check-circle text-success fs-1"></i>
+                  </div>
+                  <h6 className="text-success mb-3">Tüm ürünlerin stoku yeterli!</h6>
+                  <p className="text-muted small">Herhangi bir stok uyarısı bulunmuyor</p>
                 </div>
               )}
               
               {dashboardData.stockAlerts.length > 0 && (
-                <div className="text-center mt-3" style={{ marginTop: '20px' }}>
-                  <Link to="/employee/products?filter=lowStock" className="btn btn-outline-warning btn-sm">
+                <div className="text-center mt-4">
+                  <Link to="/employee/stock" className="btn btn-outline-warning btn-sm px-4">
+                    <i className="fas fa-warehouse me-2"></i>
                     Stok Durumunu Gör
                   </Link>
                 </div>
@@ -425,65 +481,96 @@ const EmployeeDashboard = () => {
         </div>
 
         <div className="col-lg-6 col-md-6 mb-4" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
-          <div className="dashboard-card" style={{ height: '100%' }}>
-            <div className="card-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-              <h3 className="card-title">
-                <i className="fas fa-info-circle text-main me-2"></i>
-                Özet Bilgiler
-              </h3>
+          <div className="dashboard-card shadow-lg border-0" style={{ height: '100%', borderRadius: '15px', overflow: 'hidden' }}>
+            <div className="card-header bg-gradient-primary text-white" style={{ padding: '20px 24px', border: 'none' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0 d-flex align-items-center">
+                  <span className="fw-bold">Özet Bilgiler</span>
+                </h5>
+                <span className="fw-bold text-white">
+                  Genel Durum
+                </span>
+              </div>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
-              <div className="row text-center">
-                <div className="col-6 mb-3" style={{ marginBottom: '20px' }}>
-                  <div className="performance-metric">
-                    <div className="metric-value text-success">
+              <div className="row g-3">
+                <div className="col-6">
+                  <div className="summary-card bg-white rounded-3 shadow-sm p-3 text-center hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                         style={{ width: '50px', height: '50px' }}>
+                      <i className="fas fa-check text-success fs-5"></i>
+                    </div>
+                    <div className="metric-value text-success fw-bold fs-4">
                       {dashboardData.todaysStats.totalProducts - dashboardData.todaysStats.lowStockProducts}
                     </div>
-                    <div className="metric-label" style={{ marginTop: '8px', marginBottom: '4px' }}>Normal Stok</div>
-                    <div className="metric-change text-success small">
-                      <i className="fas fa-check"></i> İyi durumda
+                    <div className="metric-label text-muted small fw-semibold">Normal Stok</div>
+                    <div className="metric-change text-success small mt-1">
+                      <i className="fas fa-thumbs-up me-1"></i>
+                      İyi durumda
                     </div>
                   </div>
                 </div>
-                <div className="col-6 mb-3" style={{ marginBottom: '20px' }}>
-                  <div className="performance-metric">
-                    <div className="metric-value text-warning">
+                
+                <div className="col-6">
+                  <div className="summary-card bg-white rounded-3 shadow-sm p-3 text-center hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                         style={{ width: '50px', height: '50px' }}>
+                      <i className="fas fa-exclamation text-warning fs-5"></i>
+                    </div>
+                    <div className="metric-value text-warning fw-bold fs-4">
                       {dashboardData.todaysStats.lowStockProducts}
                     </div>
-                    <div className="metric-label" style={{ marginTop: '8px', marginBottom: '4px' }}>Düşük Stok</div>
-                    <div className="metric-change text-warning small">
-                      <i className="fas fa-exclamation"></i> Dikkat
+                    <div className="metric-label text-muted small fw-semibold">Düşük Stok</div>
+                    <div className="metric-change text-warning small mt-1">
+                      <i className="fas fa-exclamation-triangle me-1"></i>
+                      Dikkat gerekli
                     </div>
                   </div>
                 </div>
-                <div className="col-6 mb-3" style={{ marginBottom: '20px' }}>
-                  <div className="performance-metric">
-                    <div className="metric-value text-main">
+                
+                <div className="col-6">
+                  <div className="summary-card bg-white rounded-3 shadow-sm p-3 text-center hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                         style={{ width: '50px', height: '50px' }}>
+                      <i className="fas fa-tags text-primary fs-5"></i>
+                    </div>
+                    <div className="metric-value text-primary fw-bold fs-4">
                       {dashboardData.todaysStats.totalCategories}
                     </div>
-                    <div className="metric-label" style={{ marginTop: '8px', marginBottom: '4px' }}>Kategori</div>
-                    <div className="metric-change text-main small">
-                      <i className="fas fa-tags"></i> Çeşitlilik
+                    <div className="metric-label text-muted small fw-semibold">Kategori</div>
+                    <div className="metric-change text-primary small mt-1">
+                      <i className="fas fa-layer-group me-1"></i>
+                      Çeşitlilik
                     </div>
                   </div>
                 </div>
-                <div className="col-6 mb-3" style={{ marginBottom: '20px' }}>
-                  <div className="performance-metric">
-                    <div className="metric-value text-secondary">
+                
+                <div className="col-6">
+                  <div className="summary-card bg-white rounded-3 shadow-sm p-3 text-center hover-lift"
+                       style={{ transition: 'all 0.3s ease', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <div className="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                         style={{ width: '50px', height: '50px' }}>
+                      <i className="fas fa-clock text-secondary fs-5"></i>
+                    </div>
+                    <div className="metric-value text-secondary fw-bold fs-4">
                       {dashboardData.recentProducts.length}
                     </div>
-                    <div className="metric-label" style={{ marginTop: '8px', marginBottom: '4px' }}>Son Eklenen</div>
-                    <div className="metric-change text-secondary small">
-                      <i className="fas fa-clock"></i> Güncel
+                    <div className="metric-label text-muted small fw-semibold">Son Eklenen</div>
+                    <div className="metric-change text-secondary small mt-1">
+                      <i className="fas fa-history me-1"></i>
+                      Güncel
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div className="text-center mt-3" style={{ marginTop: '24px' }}>
+              <div className="text-center mt-4">
                 <button 
                   onClick={loadDashboardData}
-                  className="btn btn-outline-main btn-sm"
+                  className="btn btn-outline-info btn-sm px-4"
                   disabled={loading}
                 >
                   <i className="fas fa-sync-alt me-2"></i>
@@ -494,6 +581,61 @@ const EmployeeDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Custom CSS */}
+      <style>{`
+        .hover-lift:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .bg-gradient-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .bg-gradient-success {
+          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .bg-gradient-warning {
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .bg-gradient-info {
+          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .product-item:hover, .category-item:hover, .alert-item:hover, .summary-card:hover {
+          border-color: rgba(0,123,255,0.3) !important;
+        }
+        
+        .progress-bar {
+          transition: width 0.6s ease;
+        }
+        
+        .metric-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+        
+        .empty-state {
+          padding: 2rem 1rem;
+        }
+        
+        @media (max-width: 768px) {
+          .dashboard-card {
+            margin-bottom: 1rem;
+          }
+          
+          .card-header {
+            padding: 15px 20px !important;
+          }
+          
+          .card-body {
+            padding: 20px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
