@@ -22,10 +22,9 @@ const EmployeeProductRecognition = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // API Base URL - ortamınıza göre güncelleyin
+
   const API_BASE_URL = 'http://localhost:5000/api';
 
-  // Component mount olduğunda gerekli verileri yükle
   useEffect(() => {
     checkOllamaStatus();
     loadStatistics();
@@ -36,11 +35,11 @@ const EmployeeProductRecognition = () => {
   // Ollama bağlantı durumunu kontrol et
   const checkOllamaStatus = async () => {
     try {
-      console.log('Checking Ollama status...'); // Debug log
-      console.log('API URL:', `${API_BASE_URL}/AI/test-ollama`); // Debug log
+      console.log('Checking Ollama status...'); 
+      console.log('API URL:', `${API_BASE_URL}/AI/test-ollama`); 
       
       const response = await fetch(`${API_BASE_URL}/AI/test-ollama`);
-      console.log('Ollama test response status:', response.status); // Debug log
+      console.log('Ollama test response status:', response.status); 
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -49,7 +48,7 @@ const EmployeeProductRecognition = () => {
       }
       
       const result = await response.json();
-      console.log('Ollama test result:', result); // Debug log
+      console.log('Ollama test result:', result); 
       
       if (result.success) {
         setOllamaStatus({
@@ -76,7 +75,7 @@ const EmployeeProductRecognition = () => {
     }
   };
 
-  // İstatistikleri yükle
+
   const loadStatistics = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/AI/statistics`);
@@ -90,21 +89,21 @@ const EmployeeProductRecognition = () => {
     }
   };
 
-  // Analiz geçmişini yükle
+
   const loadAnalysisHistory = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/AI/analyses?analysisType=ai_product_recognition`);
       const result = await response.json();
       
       if (result.success) {
-        setAnalysisHistory(result.data.slice(0, 10)); // Son 10 analiz
+        setAnalysisHistory(result.data.slice(0, 10)); 
       }
     } catch (error) {
       console.error('History load failed:', error);
     }
   };
 
-  // Kategorileri yükle
+ 
   const loadCategories = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -139,17 +138,17 @@ const EmployeeProductRecognition = () => {
     setCategories(fallbackCategories);
   };
 
-  // Görsel yükleme işlemi
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Dosya boyutu kontrolü
+     
       if (file.size > 10 * 1024 * 1024) {
         alert('Dosya boyutu çok büyük. Maksimum 10MB yükleyebilirsiniz.');
         return;
       }
 
-      // Dosya tipi kontrolü
+    
       if (!file.type.startsWith('image/')) {
         alert('Lütfen sadece görsel dosyası seçin.');
         return;
@@ -163,7 +162,7 @@ const EmployeeProductRecognition = () => {
           name: file.name,
           size: file.size,
           type: file.type,
-          base64: e.target.result.split(',')[1] // Base64 kısmını al
+          base64: e.target.result.split(',')[1] 
         });
         setAnalysisResult(null);
       };
@@ -183,7 +182,7 @@ const EmployeeProductRecognition = () => {
     }
   };
 
-  // Drag & Drop işlemleri
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -231,7 +230,7 @@ const EmployeeProductRecognition = () => {
     }
   };
 
-  // AI ile ürün analizi
+
   const analyzeImage = async () => {
     if (!selectedImage) {
       alert('Lütfen önce bir görsel seçin.');
@@ -247,11 +246,11 @@ const EmployeeProductRecognition = () => {
     setAnalysisResult(null);
 
     try {
-      console.log('Starting AI analysis...'); // Debug log
-      console.log('API URL:', `${API_BASE_URL}/AI/product-recognition`); // Debug log
-      console.log('Image base64 length:', selectedImage.base64?.length); // Debug log
+      console.log('Starting AI analysis...'); 
+      console.log('API URL:', `${API_BASE_URL}/AI/product-recognition`); 
+      console.log('Image base64 length:', selectedImage.base64?.length); 
 
-      // API'ye analiz isteği gönder
+      
       const response = await fetch(`${API_BASE_URL}/AI/product-recognition`, {
         method: 'POST',
         headers: {
@@ -263,8 +262,8 @@ const EmployeeProductRecognition = () => {
         })
       });
 
-      console.log('Response status:', response.status); // Debug log
-      console.log('Response ok:', response.ok); // Debug log
+      console.log('Response status:', response.status); 
+      console.log('Response ok:', response.ok); 
 
       // Response'u kontrol et
       if (!response.ok) {
@@ -274,10 +273,10 @@ const EmployeeProductRecognition = () => {
       }
 
       const result = await response.json();
-      console.log('API Response:', result); // Debug log
+      console.log('API Response:', result); 
 
       if (result.success) {
-        // Sonucu frontend formatına uyarla
+        
         const formattedResult = {
           productName: result.data.detectedName || 'AI Tanımlı Ürün',
           category: result.data.detectedCategory || 'Elektronik',
@@ -320,15 +319,15 @@ const EmployeeProductRecognition = () => {
           suggestedCategories: [result.data.detectedCategory || 'Elektronik'],
           keywordTags: ['ai', 'analiz', 'ürün'],
           barcodeSuggestion: null,
-          processingTime: (result.data.processingTime || 3000) / 1000, // ms to seconds
+          processingTime: (result.data.processingTime || 3000) / 1000, 
           analysisDate: new Date().toISOString(),
           aiModel: result.data.aiModel || 'AI Model'
         };
 
-        console.log('Formatted result:', formattedResult); // Debug log
+        console.log('Formatted result:', formattedResult); 
         setAnalysisResult(formattedResult);
         
-        // İstatistikleri ve geçmişi güncelle
+       
         loadStatistics();
         loadAnalysisHistory();
         
@@ -340,7 +339,6 @@ const EmployeeProductRecognition = () => {
     } catch (error) {
       console.error('Analysis error details:', error);
       
-      // Hata türüne göre kullanıcı dostu mesajlar
       let userMessage = 'Analiz sırasında bir hata oluştu.';
       
       if (error.message.includes('fetch')) {
@@ -355,13 +353,13 @@ const EmployeeProductRecognition = () => {
         userMessage = `Hata: ${error.message}`;
       }
       
-      // Demo modu önerisi
+     
       const useDemo = window.confirm(
         `${userMessage}\n\nDemo modu ile devam etmek ister misiniz?`
       );
       
       if (useDemo) {
-        // Demo analiz sonucu
+       
         const demoResult = {
           productName: 'Demo Ürün',
           category: 'Elektronik',
@@ -460,7 +458,6 @@ const EmployeeProductRecognition = () => {
     }
   };
 
-  // Ürün olarak kaydet - Products Controller'a gönder
   const saveToProducts = async () => {
     if (!analysisResult) {
       alert('Kaydetmek için önce bir analiz yapın.');
@@ -475,12 +472,12 @@ const EmployeeProductRecognition = () => {
     setIsSaving(true);
 
     try {
-      // Kategori ID'sini bul
+   
       const categoryId = categories.find(cat => 
         cat.name.toLowerCase() === analysisResult.category.toLowerCase()
       )?.id || categories[0]?.id || 1;
 
-      // Form data hazırla
+     
       const productData = {
         companyId: user.companyId,
         name: analysisResult.productName,
@@ -490,11 +487,11 @@ const EmployeeProductRecognition = () => {
         model: analysisResult.model || '',
         color: analysisResult.color || '',
         price: analysisResult.estimatedPrice || 0,
-        costPrice: analysisResult.estimatedPrice ? (analysisResult.estimatedPrice * 0.7) : 0, // %30 kar marjı varsayımı
-        currentStock: 1, // Varsayılan stok
-        minimumStock: 1, // Varsayılan minimum stok
+        costPrice: analysisResult.estimatedPrice ? (analysisResult.estimatedPrice * 0.7) : 0, 
+        currentStock: 1, 
+        minimumStock: 1, 
         barcode: analysisResult.barcodeSuggestion || '',
-        imageUrl: selectedImage.preview // Base64 görsel
+        imageUrl: selectedImage.preview 
       };
 
       console.log('Saving product to database:', productData);
@@ -514,12 +511,12 @@ const EmployeeProductRecognition = () => {
       if (result.success) {
         alert(`${analysisResult.productName} başarıyla ürün veritabanına eklendi!`);
         
-        // Kullanıcıya seçenek sun
+        
         const goToProduct = window.confirm('Ürün başarıyla eklendi! Ürün listesine gitmek ister misiniz?');
         if (goToProduct) {
           navigate('/employee/products');
         } else {
-          // Mevcut analizi temizle
+          
           setAnalysisResult(null);
           setSelectedImage(null);
         }

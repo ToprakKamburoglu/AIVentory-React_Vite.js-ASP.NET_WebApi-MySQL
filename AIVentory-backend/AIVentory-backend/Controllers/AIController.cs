@@ -29,7 +29,6 @@ namespace AIVentory_backend.Controllers
             _ollamaClient = new OllamaApiClient("http://localhost:11434");
         }
 
-        // Ollama bağlantı testi
         [HttpGet("test-ollama")]
         public async Task<ActionResult> TestOllama()
         {
@@ -37,7 +36,6 @@ namespace AIVentory_backend.Controllers
             {
                 _logger.LogInformation("Testing Ollama connection...");
 
-                // Mevcut modelleri listele
                 var models = await _ollamaClient.ListLocalModelsAsync();
 
                 if (models == null || !models.Any())
@@ -50,7 +48,6 @@ namespace AIVentory_backend.Controllers
                     });
                 }
 
-                // Basit bir test mesajı gönder
                 var chatRequest = new ChatRequest
                 {
                     Model = models.First().Name,
@@ -65,7 +62,7 @@ namespace AIVentory_backend.Controllers
                     Stream = false
                 };
 
-                // Akıştan ilk cevabı al
+             
                 var chatStream = _ollamaClient.ChatAsync(chatRequest);
                 string? testResponseContent = null;
                 await foreach (var streamResponse in chatStream)
@@ -119,14 +116,13 @@ namespace AIVentory_backend.Controllers
                     return BadRequest(new { success = false, message = "Resim URL'si veya Base64 verisi gereklidir" });
                 }
 
-                // Ollama modellerini kontrol et
                 var models = await _ollamaClient.ListLocalModelsAsync();
                 if (!models.Any())
                 {
                     return BadRequest(new { success = false, message = "Ollama'da hiç model bulunamadı" });
                 }
 
-                // LLaVA modellerini öncelik sırasına göre seç
+              
                 var visionModel = models.FirstOrDefault(m => m.Name.Contains("llava:13b")) ??
                                  models.FirstOrDefault(m => m.Name.Contains("llava:7b")) ??
                                  models.FirstOrDefault(m => m.Name.Contains("llava")) ??
@@ -146,36 +142,36 @@ namespace AIVentory_backend.Controllers
                 string selectedModel = "";
                 double analysisConfidence = 0;
 
-                // ADIM 1: Vision Model ile Görsel Analiz
+              
                 if (visionModel != null && !string.IsNullOrEmpty(request.ImageBase64))
                 {
                     _logger.LogInformation($"Using vision model: {visionModel.Name}");
 
                     var visionPrompt = @"
-            Analyze this product image carefully and provide detailed information in JSON format.
+                    Analyze this product image carefully and provide detailed information in JSON format.
 
-            Look for:
-            - Brand logos, names, or text on the product
-            - Model numbers or product names
-            - Product category and type
-            - Color and distinctive features
-            - Any visible specifications or labels
+                    Look for:
+                    - Brand logos, names, or text on the product
+                    - Model numbers or product names
+                    - Product category and type
+                    - Color and distinctive features
+                    - Any visible specifications or labels
 
-            Respond ONLY with valid JSON:
-            {
-                ""productName"": ""exact product name if identifiable, otherwise descriptive name"",
-                ""category"": ""Electronics/Clothing/Home/Sports/Books/Cosmetics"",
-                ""brand"": ""brand name if logo/text clearly visible, otherwise Unknown"",
-                ""color"": ""primary color of the product"",
-                ""features"": [""feature1"", ""feature2"", ""feature3""],
-                ""description"": ""detailed description of what you see"",
-                ""confidence"": 85.5,
-                ""productType"": ""smartphone/laptop/shirt/etc"",
-                ""materials"": ""visible materials like plastic, metal, fabric"",
-                ""estimatedSize"": ""small/medium/large based on appearance""
-            }
+                    Respond ONLY with valid JSON:
+                    {
+                        ""productName"": ""exact product name if identifiable, otherwise descriptive name"",
+                        ""category"": ""Electronics/Clothing/Home/Sports/Books/Cosmetics"",
+                        ""brand"": ""brand name if logo/text clearly visible, otherwise Unknown"",
+                        ""color"": ""primary color of the product"",
+                        ""features"": [""feature1"", ""feature2"", ""feature3""],
+                        ""description"": ""detailed description of what you see"",
+                        ""confidence"": 85.5,
+                        ""productType"": ""smartphone/laptop/shirt/etc"",
+                        ""materials"": ""visible materials like plastic, metal, fabric"",
+                        ""estimatedSize"": ""small/medium/large based on appearance""
+                    }
 
-            Be honest about uncertainty. Only respond with JSON, no other text.";
+                    Be honest about uncertainty. Only respond with JSON, no other text.";
 
                     var visionRequest = new ChatRequest
                     {
@@ -192,11 +188,11 @@ namespace AIVentory_backend.Controllers
                         Stream = false,
                         Options = new RequestOptions
                         {
-                            Temperature = 0.1f,  // Düşük temperature - tutarlılık için
+                            Temperature = 0.1f,  
                             TopP = 0.9f,
                             TopK = 40,
                             RepeatPenalty = 1.1f,
-                            NumCtx = 3072  // LLaVA:13B için optimum context
+                            NumCtx = 3072 
                         }
                     };
 
@@ -221,28 +217,28 @@ namespace AIVentory_backend.Controllers
                     }
                 }
 
-                // ADIM 2: Eğer vision model başarısız olursa fallback
+               
                 if (string.IsNullOrEmpty(responseContent) && fallbackModel != null)
                 {
                     _logger.LogInformation($"Using fallback model: {fallbackModel.Name}");
 
                     var fallbackPrompt = @"
-            Bir ürün tanıma sistemi için örnek analiz sonucu oluştur.
-            Aşağıdaki JSON formatında cevap ver:
-            {
-                ""productName"": ""Akıllı Telefon"",
-                ""category"": ""Elektronik"",
-                ""brand"": ""Samsung"",
-                ""color"": ""Siyah"",
-                ""features"": [""128GB"", ""6.1 inç"", ""Triple Kamera""],
-                ""description"": ""Modern akıllı telefon"",
-                ""confidence"": 75.0,
-                ""productType"": ""telefon"",
-                ""materials"": ""plastik ve metal"",
-                ""estimatedSize"": ""orta""
-            }
+                    Bir ürün tanıma sistemi için örnek analiz sonucu oluştur.
+                    Aşağıdaki JSON formatında cevap ver:
+                    {
+                        ""productName"": ""Akıllı Telefon"",
+                        ""category"": ""Elektronik"",
+                        ""brand"": ""Samsung"",
+                        ""color"": ""Siyah"",
+                        ""features"": [""128GB"", ""6.1 inç"", ""Triple Kamera""],
+                        ""description"": ""Modern akıllı telefon"",
+                        ""confidence"": 75.0,
+                        ""productType"": ""telefon"",
+                        ""materials"": ""plastik ve metal"",
+                        ""estimatedSize"": ""orta""
+                    }
             
-            Bu formatta farklı bir ürün için örnek oluştur. Sadece JSON formatında cevap ver.";
+                    Bu formatta farklı bir ürün için örnek oluştur. Sadece JSON formatında cevap ver.";
 
                     var fallbackRequest = new ChatRequest
                     {
@@ -280,7 +276,7 @@ namespace AIVentory_backend.Controllers
                     throw new Exception("Hiçbir model analiz yapamadı");
                 }
 
-                // ADIM 3: JSON Parse
+              
                 ProductAnalysisResult aiResult;
                 try
                 {
@@ -315,7 +311,7 @@ namespace AIVentory_backend.Controllers
                     analysisConfidence = 70.0;
                 }
 
-                // ADIM 4: Türkçe Optimizasyon (opsiyonel)
+               
                 if (turkishModel != null && analysisConfidence > 60)
                 {
                     try
@@ -398,7 +394,6 @@ namespace AIVentory_backend.Controllers
                     }
                 }
 
-                // ADIM 5: Sonucu Genişlet
                 var enhancedResult = new
                 {
                     id = new Random().Next(1000, 9999),
@@ -416,7 +411,7 @@ namespace AIVentory_backend.Controllers
                     specifications = GenerateSpecificationsFromAnalysis(aiResult),
                     marketAnalysis = GenerateTurkishMarketAnalysis(),
                     aiInsights = GenerateLlavaInsights(aiResult, selectedModel),
-                    processingTime = new Random().Next(2000, 4000), // LLaVA:13B realistic timing
+                    processingTime = new Random().Next(2000, 4000), 
                     status = "completed",
                     createdAt = DateTime.Now,
                     debugInfo = new
@@ -428,7 +423,7 @@ namespace AIVentory_backend.Controllers
                     }
                 };
 
-                // ADIM 6: Veritabanına Kaydet (Try-Catch ile)
+               
                 try
                 {
                     var aiAnalysis = new AIAnalysis
@@ -483,7 +478,6 @@ namespace AIVentory_backend.Controllers
         }
 
 
-        // Gerçek AI ile renk analizi
         [HttpPost("color-analysis")]
         public async Task<ActionResult> ColorAnalysis([FromBody] ProductAnalysisRequest request)
         {
@@ -494,7 +488,7 @@ namespace AIVentory_backend.Controllers
                     return BadRequest(new { success = false, message = "Resim URL'si veya Base64 verisi gereklidir" });
                 }
 
-                // Renk analizi için image processing kütüphanesi kullan
+               
                 var dominantColors = new List<object>();
 
                 if (!string.IsNullOrEmpty(request.ImageBase64))
@@ -511,7 +505,6 @@ namespace AIVentory_backend.Controllers
                     }
                 }
 
-                // AI ile renk analizi
                 var models = await _ollamaClient.ListLocalModelsAsync();
                 var textModel = models.FirstOrDefault();
 
@@ -556,7 +549,7 @@ namespace AIVentory_backend.Controllers
                         }
                     }
 
-                    // AI cevabını parse et
+               
                     try
                     {
                         var jsonStr = ExtractJsonFromResponse(aiResponseContent ?? "");
@@ -573,7 +566,7 @@ namespace AIVentory_backend.Controllers
                     }
                 }
 
-                // Fallback renkler
+               
                 if (dominantColors.Count == 0)
                 {
                     dominantColors = new List<object>
@@ -624,7 +617,7 @@ namespace AIVentory_backend.Controllers
             }
         }
 
-        // Diğer endpoint'ler
+       
         [HttpGet("price-recommendation/{productId}")]
         public async Task<ActionResult> GetPriceRecommendation(int productId)
         {
@@ -776,14 +769,14 @@ namespace AIVentory_backend.Controllers
             }
         }
 
-        // Helper Methods
+       
         private List<object> ExtractDominantColors(Image<Rgba32> image)
         {
             var colorCounts = new Dictionary<Rgba32, int>();
 
             image.Mutate(x => x.Resize(100, 100));
 
-            // Renkleri say
+           
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
@@ -832,7 +825,7 @@ namespace AIVentory_backend.Controllers
 
         private string GetColorName(Rgba32 color)
         {
-            // Basit renk adlandırma
+           
             if (color.R > 200 && color.G > 200 && color.B > 200) return "White";
             if (color.R < 50 && color.G < 50 && color.B < 50) return "Black";
             if (color.R > color.G && color.R > color.B) return "Red";

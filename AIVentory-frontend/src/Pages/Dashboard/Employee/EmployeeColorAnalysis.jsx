@@ -31,7 +31,7 @@ const EmployeeColorAnalysis = () => {
   const cameraInputRef = useRef(null);
   const API_BASE_URL = 'http://localhost:5000';
 
-  // Ollama bağlantı testi
+ 
   const testOllamaConnection = async () => {
     setTestingOllama(true);
     try {
@@ -158,8 +158,8 @@ const EmployeeColorAnalysis = () => {
     setAnalysisResult(null);
 
     try {
-      // Base64 string'i hazırla
-      const base64Data = selectedImage.preview.split(',')[1]; // data:image/jpeg;base64, kısmını çıkar
+     
+      const base64Data = selectedImage.preview.split(',')[1]; 
 
       const requestBody = {
         imageUrl: selectedImage.preview,
@@ -180,7 +180,7 @@ const EmployeeColorAnalysis = () => {
       if (result.success) {
         setAnalysisResult(result.data);
 
-        // Geçmişe ekle
+       
         const newHistoryItem = {
           id: Date.now(),
           date: new Date().toLocaleString('tr-TR'),
@@ -191,7 +191,7 @@ const EmployeeColorAnalysis = () => {
         };
         setAnalysisHistory(prev => [newHistoryItem, ...prev.slice(0, 9)]);
 
-        // Başarı mesajı
+      
         alert(`✅ Renk analizi tamamlandı!\n\nBulunan ${result.data.dominantColors?.length || 0} baskın renk\nAI Model: ${result.data.aiModel}\nİşlem Süresi: ${result.data.processingTime}ms`);
       } else {
         alert(`❌ Renk analizi başarısız: ${result.message}`);
@@ -287,7 +287,7 @@ const EmployeeColorAnalysis = () => {
   };
 
   const editColorPalette = () => {
-    // Modal açma veya edit sayfasına yönlendirme
+   
     alert('Renk paleti düzenleme özelliği yakında eklenecek!');
   };
 
@@ -308,7 +308,7 @@ const EmployeeColorAnalysis = () => {
       const colors = analysisResult.dominantColors.slice(0, 3).map(c => c.color);
       const gradient = `linear-gradient(45deg, ${colors.join(', ')})`;
       
-      // Gradient önizlemesi göster
+     
       const gradientDiv = document.createElement('div');
       gradientDiv.style.cssText = `
         position: fixed;
@@ -345,7 +345,7 @@ const EmployeeColorAnalysis = () => {
       const color1 = analysisResult.dominantColors[0].color;
       const color2 = analysisResult.dominantColors[1].color;
       
-      // Basit kontrast hesaplama (gerçek uygulamada daha gelişmiş olmalı)
+     
       const contrast = calculateContrast(color1, color2);
       
       alert(`Kontrast Oranı: ${contrast.toFixed(2)}\n\n${contrast >= 4.5 ? '✅ WCAG AA uyumlu' : '❌ Kontrast yetersiz'}\n\nRenkler: ${color1} ve ${color2}`);
@@ -353,7 +353,7 @@ const EmployeeColorAnalysis = () => {
   };
 
   const calculateContrast = (color1, color2) => {
-    // Basit kontrast hesaplama - gerçek uygulamada daha detaylı olmalı
+   
     const lum1 = getLuminance(color1);
     const lum2 = getLuminance(color2);
     const brightest = Math.max(lum1, lum2);
