@@ -127,6 +127,10 @@
               "target": "Package",
               "version": "[1.0.2, )"
             },
+            "OllamaSharp": {
+              "target": "Package",
+              "version": "[5.3.4, )"
+            },
             "Pomelo.EntityFrameworkCore.MySql": {
               "target": "Package",
               "version": "[9.0.0-preview.3.efcore.9.0.0, )"

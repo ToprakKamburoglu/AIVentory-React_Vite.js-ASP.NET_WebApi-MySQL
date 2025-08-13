@@ -5,6 +5,18 @@
     "version": "v1"
   },
   "paths": {
+    "/api/AI/test-ollama": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/AI/product-recognition": {
       "post": {
         "tags": [
@@ -115,38 +127,6 @@
       "get": {
         "tags": [
           "AI"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/AI/demand-forecast/{productId}": {
-      "get": {
-        "tags": [
-          "AI"
-        ],
-        "parameters": [
-          {
-            "name": "productId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "days",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 30
-            }
-          }
         ],
         "responses": {
           "200": {
@@ -2017,6 +1997,10 @@
         "type": "object",
         "properties": {
           "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageBase64": {
             "type": "string",
             "nullable": true
           },

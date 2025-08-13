@@ -26,6 +26,7 @@
           "MySql.Data": "9.4.0",
           "MySqlConnector": "2.4.0",
           "MySql_connector_for_2022": "1.0.2",
+          "OllamaSharp": "5.3.4",
           "Pomelo.EntityFrameworkCore.MySql": "9.0.0-preview.3.efcore.9.0.0",
           "Serilog.AspNetCore": "9.0.0",
           "SixLabors.ImageSharp": "3.1.11",
@@ -1024,7 +1025,7 @@
           "Microsoft.Net.Compilers.Toolset": "4.14.0",
           "Microsoft.SemanticKernel.Abstractions": "1.61.0",
           "Microsoft.SemanticKernel.Core": "1.61.0",
-          "OllamaSharp": "5.2.3"
+          "OllamaSharp": "5.3.4"
         },
         "runtime": {
           "lib/net8.0/Microsoft.SemanticKernel.Connectors.Ollama.dll": {
@@ -1173,14 +1174,14 @@
           }
         }
       },
-      "OllamaSharp/5.2.3": {
+      "OllamaSharp/5.3.4": {
         "dependencies": {
           "Microsoft.Extensions.AI.Abstractions": "9.7.1"
         },
         "runtime": {
           "lib/net9.0/OllamaSharp.dll": {
-            "assemblyVersion": "5.2.3.0",
-            "fileVersion": "5.2.3.0"
+            "assemblyVersion": "5.3.4.0",
+            "fileVersion": "5.3.4.0"
           }
         }
       },
@@ -2255,12 +2256,12 @@
       "path": "mysql_connector_for_2022/1.0.2",
       "hashPath": "mysql_connector_for_2022.1.0.2.nupkg.sha512"
     },
-    "OllamaSharp/5.2.3": {
+    "OllamaSharp/5.3.4": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-bFRAhOXSeigi0Qm9RHOStEDaXiV4bZKZxJNy1v1SOQ/W8X0OGctOmCRqe7ApbVGTAIyD7CPFWhum+eIDfOP75w==",
-      "path": "ollamasharp/5.2.3",
-      "hashPath": "ollamasharp.5.2.3.nupkg.sha512"
+      "sha512": "sha512-u6fhBTHxyCqzngjxSurGl1eXrGRNmpOD0f2Nr+I/XXSF3Rbo03g2eCd+TRBlJIlsPBgqJB9DyU5FZalPsxUjjA==",
+      "path": "ollamasharp/5.3.4",
+      "hashPath": "ollamasharp.5.3.4.nupkg.sha512"
     },
     "OpenAI/2.2.0": {
       "type": "package",

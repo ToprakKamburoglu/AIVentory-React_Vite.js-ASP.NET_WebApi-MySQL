@@ -33,27 +33,6 @@
   },
   {
     "ContainingType": "AIVentory_backend.Controllers.AIController",
-    "Method": "GetDemandForecast",
-    "RelativePath": "api/AI/demand-forecast/{productId}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "productId",
-        "Type": "System.Int32",
-        "IsRequired": true
-      },
-      {
-        "Name": "days",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AIVentory_backend.Controllers.AIController",
     "Method": "GetPriceRecommendation",
     "RelativePath": "api/AI/price-recommendation/{productId}",
     "HttpMethod": "GET",
@@ -88,6 +67,16 @@
     "ContainingType": "AIVentory_backend.Controllers.AIController",
     "Method": "GetAIStatistics",
     "RelativePath": "api/AI/statistics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AIVentory_backend.Controllers.AIController",
+    "Method": "TestOllama",
+    "RelativePath": "api/AI/test-ollama",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

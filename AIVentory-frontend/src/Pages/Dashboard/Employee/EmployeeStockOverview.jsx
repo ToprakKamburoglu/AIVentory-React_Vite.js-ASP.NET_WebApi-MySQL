@@ -986,23 +986,11 @@ const EmployeeStockOverview = () => {
               <div className="modal-body p-0" style={{ overflow: 'auto', flex: 1 }}>
                 {/* Stock Header */}
                 <div className="bg-light p-4 border-bottom">
-                  <div className="row align-items-center">
-                    <div className="col-md-3 text-center">
-                      <div 
-                        className="rounded-3 bg-white border d-flex align-items-center justify-content-center shadow-sm"
-                        style={{ 
-                          width: '150px', 
-                          height: '150px',
-                          margin: '0 auto'
-                        }}
-                      >
-                        <i className="fas fa-box text-main" style={{ fontSize: '3rem' }}></i>
-                      </div>
-                    </div>
-                    <div className="col-md-9 text-end">
+                  <div className="row align-items-center justify-content-center">
+                    <div className="col-md-9 text-center">
                       <h3 className="mb-2 text-primary">{selectedStock.name}</h3>
-                      <p className="text-muted mb-3">ID: #{selectedStock.id}</p>
-                      <div className="d-flex gap-2 mb-2 justify-content-end">
+                      <h5 className="text-primary mb-2">ID: #{selectedStock.id}</h5>
+                      <div className="d-flex gap-2 mb-2 justify-content-center">
                         <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
                           {selectedStock.category}
                         </span>

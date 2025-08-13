@@ -1707,10 +1707,10 @@
           "lib/net8.0/MySql_connector_for_2022.dll": {}
         }
       },
-      "OllamaSharp/5.2.3": {
+      "OllamaSharp/5.3.4": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.AI.Abstractions": "9.5.0"
+          "Microsoft.Extensions.AI.Abstractions": "9.7.1"
         },
         "compile": {
           "lib/net9.0/OllamaSharp.dll": {
@@ -5916,10 +5916,10 @@
         "mysql_connector_for_2022.nuspec"
       ]
     },
-    "OllamaSharp/5.2.3": {
-      "sha512": "bFRAhOXSeigi0Qm9RHOStEDaXiV4bZKZxJNy1v1SOQ/W8X0OGctOmCRqe7ApbVGTAIyD7CPFWhum+eIDfOP75w==",
+    "OllamaSharp/5.3.4": {
+      "sha512": "u6fhBTHxyCqzngjxSurGl1eXrGRNmpOD0f2Nr+I/XXSF3Rbo03g2eCd+TRBlJIlsPBgqJB9DyU5FZalPsxUjjA==",
       "type": "package",
-      "path": "ollamasharp/5.2.3",
+      "path": "ollamasharp/5.3.4",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -5935,7 +5935,7 @@
         "lib/netstandard2.0/OllamaSharp.xml",
         "lib/netstandard2.1/OllamaSharp.dll",
         "lib/netstandard2.1/OllamaSharp.xml",
-        "ollamasharp.5.2.3.nupkg.sha512",
+        "ollamasharp.5.3.4.nupkg.sha512",
         "ollamasharp.nuspec"
       ]
     },
@@ -7834,6 +7834,7 @@
       "MySql.Data >= 9.4.0",
       "MySqlConnector >= 2.4.0",
       "MySql_connector_for_2022 >= 1.0.2",
+      "OllamaSharp >= 5.3.4",
       "Pomelo.EntityFrameworkCore.MySql >= 9.0.0-preview.3.efcore.9.0.0",
       "Serilog.AspNetCore >= 9.0.0",
       "SixLabors.ImageSharp >= 3.1.11",
@@ -7968,6 +7969,10 @@
           "MySql_connector_for_2022": {
             "target": "Package",
             "version": "[1.0.2, )"
+          },
+          "OllamaSharp": {
+            "target": "Package",
+            "version": "[5.3.4, )"
           },
           "Pomelo.EntityFrameworkCore.MySql": {
             "target": "Package",
