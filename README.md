@@ -15,21 +15,20 @@
 
 ---
 
-## 📋 Table of Contents
+| 📋 **Table of Contents** |   |
+|--------------------------|---|
+| [About the Project](#-about-the-project) | Proje hakkında genel bilgiler |
+| [Features](#-key-features) | Öne çıkan özellikler |
+| [Technology Stack](#-technology-stack) | Kullanılan teknolojiler |
+| [Installation](#-installation) | Kurulum adımları |
+| [Usage](#-usage) | Kullanım talimatları |
+| [API Endpoints](#-api-endpoints) | API uç noktaları |
+| [Database Schema](#-database-schema) | Veritabanı yapısı |
+| [Project Structure](#-project-structure) | Proje klasör/dosya yapısı |
+| [Role-Based Authorization](#-role-based-authorization) | Rol tabanlı yetkilendirme |
+| [Contributing](#-contributing) | Katkı sağlama rehberi |
+| [License](#-license) | Lisans bilgileri |
 
-- [About the Project](#-about-the-project)
-- [Features](#-key-features)
-- [Technology Stack](#-technology-stack)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [API Endpoints](#-api-endpoints)
-- [Database Schema](#-database-schema)
-- [Project Structure](#-project-structure)
-- [Role-Based Authorization](#-role-based-authorization)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
 
 ## 🎯 About the Project
 
