@@ -1,4 +1,6 @@
+<div align="center">
 # AIVentory - AI-Powered Inventory Management System
+</div>
 
 <div align="center">
   
