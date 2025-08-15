@@ -15,9 +15,10 @@
 
 ---
 
+<div align="center">
+
 | 📋 **Table of Contents** |   |
 |--------------------------|---|
-<div classname= "center">
 | [About the Project](#-about-the-project) | Proje hakkında genel bilgiler |
 | [Features](#-key-features) | Öne çıkan özellikler |
 | [Technology Stack](#-technology-stack) | Kullanılan teknolojiler |
@@ -29,6 +30,7 @@
 | [Role-Based Authorization](#-role-based-authorization) | Rol tabanlı yetkilendirme |
 | [Contributing](#-contributing) | Katkı sağlama rehberi |
 | [License](#-license) | Lisans bilgileri |
+
 </div>
 
 ## 🎯 About the Project
