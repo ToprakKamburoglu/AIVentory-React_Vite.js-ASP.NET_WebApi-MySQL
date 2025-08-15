@@ -17,7 +17,6 @@
 
 ---
 
-<div align="center">
 
 | 📋 **Table of Contents** |   |
 |--------------------------|---|
@@ -33,7 +32,6 @@
 | [Contributing](#-contributing) | Katkı sağlama rehberi |
 | [License](#-license) | Lisans bilgileri |
 
-</div>
 
 ## 🎯 About the Project
 
