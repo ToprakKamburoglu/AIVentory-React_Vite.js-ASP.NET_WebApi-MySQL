@@ -108,10 +108,8 @@
 - **Routing**: React Router v6
 
 ### AI & Computer Vision
-- **Image Processing**: OpenCV
-- **Object Detection**: YOLO v8
-- **Machine Learning**: TensorFlow/PyTorch
-- **API**: FastAPI (Python)
+- **Image Processing**: Ollama llava:13b
+- **Object Detection**: Ollama llava:13b
 
 ### DevOps & Tools
 - **Containerization**: Docker
@@ -694,18 +692,18 @@ To contribute to the project:
 
 ## 🐛 Known Issues
 
-- [ ] AI analysis results may sometimes be delayed
-- [ ] Large image file upload issues
-- [ ] Mobile responsive improvements ongoing
+- AI analysis results may sometimes be delayed
+- Large image file upload issues
+- Mobile responsive improvements ongoing
 
 ## 🔮 Future Plans
 
-- [ ] **Mobile App**: React Native mobile application
-- [ ] **Advanced AI**: More sophisticated ML models
-- [ ] **Multi-language**: Multi-language support
-- [ ] **API Integration**: ERP systems integration
-- [ ] **Barcode Scanner**: Mobile barcode reading
-- [ ] **Voice Commands**: Voice command support
+- **Mobile App**: React Native mobile application
+- **Advanced AI**: More sophisticated ML models
+- **Multi-language**: Multi-language support
+- **API Integration**: ERP systems integration
+- **Barcode Scanner**: Mobile barcode reading
+- **Voice Commands**: Voice command support
 
 ---
 
@@ -721,15 +719,5 @@ This project is licensed under the [MIT License](LICENSE).
 - **Email**: toprakkamburoglu@gmail.com
 - **LinkedIn**: [linkedin.com/in/toprakkamburoglu](www.linkedin.com/in/toprak-kamburoğlu-627636293)
 - **GitHub**: [github.com/toprakkamburoglu](https://github.com/ToprakKamburoglu)
-
-
----
-
-## 🙏 Acknowledgments
-
-- OpenCV community
-- .NET Core team
-- React and Vite developers
-- All open source contributors
 
 ---
