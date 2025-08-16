@@ -22,17 +22,17 @@
 
 | 📋 **Table of Contents** |   |
 |--------------------------|---|
-| [About the Project](#-about-the-project) | Proje hakkında genel bilgiler |
-| [Features](#-key-features) | Öne çıkan özellikler |
-| [Technology Stack](#-technology-stack) | Kullanılan teknolojiler |
-| [Installation](#-installation) | Kurulum adımları |
-| [Usage](#-usage) | Kullanım talimatları |
-| [API Endpoints](#-api-endpoints) | API uç noktaları |
-| [Database Schema](#-database-schema) | Veritabanı yapısı |
-| [Project Structure](#-project-structure) | Proje klasör/dosya yapısı |
-| [Role-Based Authorization](#-role-based-authorization) | Rol tabanlı yetkilendirme |
-| [Contributing](#-contributing) | Katkı sağlama rehberi |
-| [License](#-license) | Lisans bilgileri |
+| [About the Project](#-about-the-project) | [About the Project |
+| [Features](#-key-features) | Features |
+| [Technology Stack](#-technology-stack) | Technology Stack |
+| [Installation](#-installation) | Installation |
+| [Usage](#-usage) | Usage |
+| [API Endpoints](#-api-endpoints) | API Endpoints |
+| [Database Schema](#-database-schema) | Database Schema |
+| [Project Structure](#-project-structure) | Project Structure |
+| [Role-Based Authorization](#-role-based-authorization) | Role-Based Authorization |
+| [Contributing](#-contributing) | Contributing |
+| [License](#-license) | License |
 
 
 ## 🎯 About the Project
