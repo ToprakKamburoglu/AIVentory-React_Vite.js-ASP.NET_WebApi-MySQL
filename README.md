@@ -4,7 +4,7 @@
 
 <div align="center">
 
- <img src="images/AIVentoryLogoGradient.png" alt="AIVentory Logo" width="500">
+ <img src="images/AIVentoryLogoGradient.png" alt="AIVentory Logo" width="400">
 
   [![.NET Core](https://img.shields.io/badge/.NET%20Core-9.0-512BD4?style=flat-square&logo=.net)](https://dotnet.microsoft.com/)
   [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
