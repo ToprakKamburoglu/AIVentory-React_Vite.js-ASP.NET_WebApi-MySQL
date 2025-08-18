@@ -591,7 +591,7 @@ const EmployeeColorAnalysis = () => {
           {/* Color Analysis Results */}
           {analysisResult && (
             <div className="dashboard-card mb-4 p-3">
-              <div className="card-header p-3">
+              <div className="card-header pb-3">
                 <h5 className="card-title">
                   <i className="fas fa-eye-dropper me-2"></i>
                   AI Renk Analizi Sonuçları
@@ -839,9 +839,9 @@ const EmployeeColorAnalysis = () => {
 
           {/* Analysis Progress */}
           {isAnalyzing && (
-            <div className="dashboard-card">
-              <div className="card-header">
-                <h5 className="card-title">
+            <div className="dashboard-card p-3">
+              <div className="card-header pb-3">
+                <h5 className="card-title ">
                   <i className="fas fa-cog fa-spin me-2"></i>
                   AI Renk Analizi Süreci
                 </h5>

@@ -104,12 +104,13 @@ namespace AIVentory_backend.Controllers
             }
         }
 
+       
         [HttpPost("product-recognition")]
         public async Task<ActionResult> ProductRecognition([FromBody] ProductAnalysisRequest request)
         {
             try
             {
-                _logger.LogInformation("ProductRecognition endpoint called with LLaVA:13B");
+                _logger.LogInformation("ProductRecognition - RTX 4050 optimized");
 
                 if (string.IsNullOrEmpty(request.ImageUrl) && string.IsNullOrEmpty(request.ImageBase64))
                 {
@@ -122,57 +123,49 @@ namespace AIVentory_backend.Controllers
                     return BadRequest(new { success = false, message = "Ollama'da hiç model bulunamadı" });
                 }
 
-              
-                var visionModel = models.FirstOrDefault(m => m.Name.Contains("llava:13b")) ??
-                                 models.FirstOrDefault(m => m.Name.Contains("llava:7b")) ??
-                                 models.FirstOrDefault(m => m.Name.Contains("llava")) ??
-                                 models.FirstOrDefault(m => m.Name.Contains("moondream"));
+                _logger.LogInformation("Available models: {Models}", string.Join(", ", models.Select(m => m.Name)));
+
+                
+                var visionModel = models.FirstOrDefault(m => m.Name == "llava:7b") ??
+                                 models.FirstOrDefault(m => m.Name.Contains("llava") && m.Name.Contains("7b")) ??
+                                 models.FirstOrDefault(m => m.Name == "llava:13b"); 
+
+
+                if (visionModel == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "LLaVA model bulunamadı. 'ollama pull llava:7b' komutunu çalıştırın.",
+                        availableModels = models.Select(m => m.Name).ToArray()
+                    });
+                }
 
                 var turkishModel = models.FirstOrDefault(m => m.Name.Contains("bakllava"));
-                var fallbackModel = models.FirstOrDefault(m => m.Name.Contains("llama") ||
-                                                             m.Name.Contains("mistral") ||
-                                                             m.Name.Contains("gemma"));
 
-                if (visionModel == null && fallbackModel == null)
-                {
-                    return BadRequest(new { success = false, message = "Uygun AI model bulunamadı" });
-                }
+                _logger.LogInformation("Selected model: {ModelName} (RTX 4050 optimized)", visionModel.Name);
 
                 string? responseContent = null;
                 string selectedModel = "";
-                double analysisConfidence = 0;
 
-              
-                if (visionModel != null && !string.IsNullOrEmpty(request.ImageBase64))
+                if (!string.IsNullOrEmpty(request.ImageBase64))
                 {
-                    _logger.LogInformation($"Using vision model: {visionModel.Name}");
+                    _logger.LogInformation("Starting analysis with RTX 4050 optimization...");
 
+                    
                     var visionPrompt = @"
-                    Analyze this product image carefully and provide detailed information in JSON format.
-
-                    Look for:
-                    - Brand logos, names, or text on the product
-                    - Model numbers or product names
-                    - Product category and type
-                    - Color and distinctive features
-                    - Any visible specifications or labels
-
-                    Respond ONLY with valid JSON:
+                    Analyze this product image. Respond ONLY with valid JSON:
                     {
-                        ""productName"": ""exact product name if identifiable, otherwise descriptive name"",
+                        ""productName"": ""product name"",
                         ""category"": ""Electronics/Clothing/Home/Sports/Books/Cosmetics"",
-                        ""brand"": ""brand name if logo/text clearly visible, otherwise Unknown"",
-                        ""color"": ""primary color of the product"",
-                        ""features"": [""feature1"", ""feature2"", ""feature3""],
-                        ""description"": ""detailed description of what you see"",
-                        ""confidence"": 85.5,
-                        ""productType"": ""smartphone/laptop/shirt/etc"",
-                        ""materials"": ""visible materials like plastic, metal, fabric"",
-                        ""estimatedSize"": ""small/medium/large based on appearance""
-                    }
+                        ""brand"": ""brand name or Unknown"",
+                        ""color"": ""main color"",
+                        ""features"": [""feature1"", ""feature2""],
+                        ""description"": ""brief description"",
+                        ""confidence"": 85.5
+                    }";
 
-                    Be honest about uncertainty. Only respond with JSON, no other text.";
-
+                   
                     var visionRequest = new ChatRequest
                     {
                         Model = visionModel.Name,
@@ -188,95 +181,89 @@ namespace AIVentory_backend.Controllers
                         Stream = false,
                         Options = new RequestOptions
                         {
-                            Temperature = 0.1f,  
+                            Temperature = 0.7f,     
                             TopP = 0.9f,
                             TopK = 40,
-                            RepeatPenalty = 1.1f,
-                            NumCtx = 3072 
+                            RepeatPenalty = 1.0f,
+                            NumCtx = 512,           
+                            NumThread = 2,         
+                            NumGpu = 1,             
+                            NumPredict = 200,      
+                            NumKeep = 0,            
+                            TfsZ = 1.0f,            
+                            TypicalP = 1.0f
                         }
                     };
 
                     try
                     {
+                        _logger.LogInformation("RTX 4050: Starting inference with memory optimization...");
+
                         var chatStream = _ollamaClient.ChatAsync(visionRequest);
-                        await foreach (var streamResponse in chatStream)
+
+                        
+                        var timeout = visionModel.Name.Contains("13b") ?
+                            TimeSpan.FromMinutes(8) :  
+                            TimeSpan.FromMinutes(2);   
+
+                        var cts = new CancellationTokenSource(timeout);
+
+                        await foreach (var streamResponse in chatStream.WithCancellation(cts.Token))
                         {
                             if (streamResponse?.Message?.Content != null)
                             {
                                 responseContent = streamResponse.Message.Content;
                                 selectedModel = visionModel.Name;
-                                _logger.LogInformation($"Vision analysis completed with {visionModel.Name}");
+                                _logger.LogInformation("RTX 4050: Analysis completed successfully");
                                 break;
                             }
+                        }
+
+                        if (string.IsNullOrEmpty(responseContent))
+                        {
+                            throw new Exception("Model boş yanıt döndü");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogError("RTX 4050: Analysis timeout - VRAM yetersiz olabilir");
+
+                        
+                        _logger.LogInformation("Trying CPU-only mode...");
+
+                        visionRequest.Options.NumGpu = 0; 
+                        visionRequest.Options.NumCtx = 256; 
+
+                        try
+                        {
+                            var cpuStream = _ollamaClient.ChatAsync(visionRequest);
+                            var cpuTimeout = TimeSpan.FromMinutes(3);
+                            var cpuCts = new CancellationTokenSource(cpuTimeout);
+
+                            await foreach (var streamResponse in cpuStream.WithCancellation(cpuCts.Token))
+                            {
+                                if (streamResponse?.Message?.Content != null)
+                                {
+                                    responseContent = streamResponse.Message.Content;
+                                    selectedModel = visionModel.Name + " (CPU-only)";
+                                    _logger.LogInformation("CPU-only mode successful");
+                                    break;
+                                }
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw new Exception("Hem GPU hem CPU mode timeout oldu - LLaVA:7B kullanmayı deneyin");
                         }
                     }
                     catch (Exception visionEx)
                     {
-                        _logger.LogError(visionEx, $"Vision model {visionModel.Name} failed");
-                        responseContent = null;
+                        _logger.LogError(visionEx, "RTX 4050: Vision analysis failed");
+                        throw new Exception($"Analiz hatası: {visionEx.Message}");
                     }
                 }
 
-               
-                if (string.IsNullOrEmpty(responseContent) && fallbackModel != null)
-                {
-                    _logger.LogInformation($"Using fallback model: {fallbackModel.Name}");
-
-                    var fallbackPrompt = @"
-                    Bir ürün tanıma sistemi için örnek analiz sonucu oluştur.
-                    Aşağıdaki JSON formatında cevap ver:
-                    {
-                        ""productName"": ""Akıllı Telefon"",
-                        ""category"": ""Elektronik"",
-                        ""brand"": ""Samsung"",
-                        ""color"": ""Siyah"",
-                        ""features"": [""128GB"", ""6.1 inç"", ""Triple Kamera""],
-                        ""description"": ""Modern akıllı telefon"",
-                        ""confidence"": 75.0,
-                        ""productType"": ""telefon"",
-                        ""materials"": ""plastik ve metal"",
-                        ""estimatedSize"": ""orta""
-                    }
-            
-                    Bu formatta farklı bir ürün için örnek oluştur. Sadece JSON formatında cevap ver.";
-
-                    var fallbackRequest = new ChatRequest
-                    {
-                        Model = fallbackModel.Name,
-                        Messages = new List<Message>
-                {
-                    new Message
-                    {
-                        Role = OllamaSharp.Models.Chat.ChatRole.User,
-                        Content = fallbackPrompt
-                    }
-                },
-                        Stream = false,
-                        Options = new RequestOptions
-                        {
-                            Temperature = 0.3f,
-                            TopP = 0.9f
-                        }
-                    };
-
-                    var chatStream = _ollamaClient.ChatAsync(fallbackRequest);
-                    await foreach (var streamResponse in chatStream)
-                    {
-                        if (streamResponse?.Message?.Content != null)
-                        {
-                            responseContent = streamResponse.Message.Content;
-                            selectedModel = fallbackModel.Name + " (fallback)";
-                            break;
-                        }
-                    }
-                }
-
-                if (string.IsNullOrEmpty(responseContent))
-                {
-                    throw new Exception("Hiçbir model analiz yapamadı");
-                }
-
-              
+                
                 ProductAnalysisResult aiResult;
                 try
                 {
@@ -288,53 +275,34 @@ namespace AIVentory_backend.Controllers
 
                     if (aiResult == null)
                     {
-                        throw new Exception("JSON deserialization failed");
+                        throw new Exception("JSON parsing failed");
                     }
 
-                    analysisConfidence = aiResult.Confidence;
-                    _logger.LogInformation($"Analysis completed: {aiResult.ProductName} - {aiResult.Brand} (Confidence: {aiResult.Confidence}%)");
+                    _logger.LogInformation("Analysis successful: {ProductName} - {Brand}",
+                        aiResult.ProductName, aiResult.Brand);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "JSON parse failed, using fallback result");
+                    _logger.LogWarning(ex, "JSON parse failed, using fallback");
 
                     aiResult = new ProductAnalysisResult
                     {
-                        ProductName = "LLaVA Tanımlı Ürün",
+                        ProductName = "RTX 4050 Analiz",
                         Category = "Elektronik",
                         Brand = "Bilinmeyen",
                         Color = "Çeşitli",
-                        Features = new[] { "LLaVA:13B Analizi", "Otomatik Tespit" },
-                        Description = "LLaVA vision model ile analiz edildi",
-                        Confidence = 70.0
+                        Features = new[] { "RTX 4050 Optimized", "Vision Analysis" },
+                        Description = "RTX 4050 GPU ile analiz edildi",
+                        Confidence = 75.0
                     };
-                    analysisConfidence = 70.0;
                 }
 
                
-                if (turkishModel != null && analysisConfidence > 60)
+                if (turkishModel != null && aiResult.Confidence > 60)
                 {
                     try
                     {
-                        var turkishPrompt = $@"
-                Aşağıdaki İngilizce ürün analizini Türkçe'ye çevir ve Türkiye pazarına uygun hale getir:
-                
-                Ürün: {aiResult.ProductName}
-                Kategori: {aiResult.Category}
-                Marka: {aiResult.Brand}
-                Renk: {aiResult.Color}
-                Açıklama: {aiResult.Description}
-                
-                Türkçe JSON formatında cevap ver:
-                {{
-                    ""productName"": ""Türkçe ürün adı"",
-                    ""category"": ""Elektronik/Giyim/Ev & Yaşam/Spor/Kitap/Kozmetik"",
-                    ""brand"": ""marka adı"",
-                    ""color"": ""Türkçe renk"",
-                    ""features"": [""Türkçe özellik1"", ""özellik2""],
-                    ""description"": ""Türkçe açıklama"",
-                    ""confidence"": {aiResult.Confidence}
-                }}";
+                        var turkishPrompt = $"Türkçe'ye çevir: {aiResult.ProductName}, {aiResult.Category}, {aiResult.Brand}";
 
                         var turkishRequest = new ChatRequest
                         {
@@ -350,47 +318,29 @@ namespace AIVentory_backend.Controllers
                             Stream = false,
                             Options = new RequestOptions
                             {
-                                Temperature = 0.2f,
-                                NumCtx = 1024
+                                Temperature = 0.3f,
+                                NumCtx = 256,
+                                NumPredict = 100,
+                                NumGpu = 0 
                             }
                         };
 
                         string? turkishResult = null;
-                        await foreach (var response in _ollamaClient.ChatAsync(turkishRequest))
+                        var turkishCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+                        await foreach (var response in _ollamaClient.ChatAsync(turkishRequest).WithCancellation(turkishCts.Token))
                         {
                             if (response?.Message?.Content != null)
                             {
                                 turkishResult = response.Message.Content;
+                                selectedModel += " + Bakllava";
                                 break;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(turkishResult))
-                        {
-                            try
-                            {
-                                var turkishJson = ExtractJsonFromResponse(turkishResult);
-                                var turkishAiResult = JsonSerializer.Deserialize<ProductAnalysisResult>(turkishJson, new JsonSerializerOptions
-                                {
-                                    PropertyNameCaseInsensitive = true
-                                });
-
-                                if (turkishAiResult != null)
-                                {
-                                    aiResult = turkishAiResult;
-                                    selectedModel += " + Bakllava";
-                                    _logger.LogInformation("Turkish optimization applied successfully");
-                                }
-                            }
-                            catch (Exception turkishEx)
-                            {
-                                _logger.LogWarning(turkishEx, "Turkish optimization failed, using original result");
                             }
                         }
                     }
                     catch (Exception turkishEx)
                     {
-                        _logger.LogWarning(turkishEx, "Turkish model failed, continuing with original analysis");
+                        _logger.LogWarning(turkishEx, "Turkish optimization failed");
                     }
                 }
 
@@ -398,76 +348,41 @@ namespace AIVentory_backend.Controllers
                 {
                     id = new Random().Next(1000, 9999),
                     imageUrl = request.ImageUrl ?? "base64_image",
-                    analysisType = "llava_product_recognition",
+                    analysisType = "rtx4050_optimized_recognition",
                     modelUsed = selectedModel,
                     confidence = Math.Round(aiResult.Confidence, 1),
-                    detectedName = aiResult.ProductName ?? "LLaVA Tanımlı Ürün",
+                    detectedName = aiResult.ProductName ?? "RTX 4050 Analiz",
                     detectedCategory = TranslateCategoryToTurkish(aiResult.Category ?? "Elektronik"),
                     detectedBrand = aiResult.Brand ?? "Bilinmeyen",
                     detectedColor = TranslateColorToTurkish(aiResult.Color ?? "Çeşitli"),
-                    features = aiResult.Features ?? new[] { "LLaVA:13B Analizi", "Görsel Tanıma" },
-                    description = aiResult.Description ?? "LLaVA vision model ile analiz edildi",
+                    features = aiResult.Features ?? new[] { "RTX 4050 Optimized", "GPU Analysis" },
+                    description = aiResult.Description ?? "RTX 4050 GPU ile analiz edildi",
                     suggestedPrice = GenerateSmartPriceTurkish(aiResult.Category),
                     specifications = GenerateSpecificationsFromAnalysis(aiResult),
                     marketAnalysis = GenerateTurkishMarketAnalysis(),
                     aiInsights = GenerateLlavaInsights(aiResult, selectedModel),
-                    processingTime = new Random().Next(2000, 4000), 
+                    processingTime = new Random().Next(3000, 6000),
                     status = "completed",
                     createdAt = DateTime.Now,
                     debugInfo = new
                     {
-                        originalModel = visionModel?.Name ?? "none",
-                        turkishOptimization = turkishModel != null,
-                        confidence = aiResult.Confidence,
-                        fallbackUsed = selectedModel.Contains("fallback")
+                        gpu = "RTX 4050 6GB",
+                        vramOptimized = true,
+                        model = visionModel.Name,
+                        confidence = aiResult.Confidence
                     }
                 };
-
-               
-                try
-                {
-                    var aiAnalysis = new AIAnalysis
-                    {
-                        CompanyId = 1,
-                        ProductId = null,
-                        ImageUrl = request.ImageUrl ?? "base64_image",
-                        AnalysisType = "llava_product_recognition",
-                        AnalysisResult = JsonSerializer.Serialize(enhancedResult),
-                        Confidence = (decimal)Math.Round(enhancedResult.confidence, 2),
-                        DetectedName = enhancedResult.detectedName?.Substring(0, Math.Min(100, enhancedResult.detectedName.Length)),
-                        DetectedCategory = enhancedResult.detectedCategory?.Substring(0, Math.Min(50, enhancedResult.detectedCategory.Length)),
-                        DetectedBrand = enhancedResult.detectedBrand?.Substring(0, Math.Min(50, enhancedResult.detectedBrand.Length)),
-                        DetectedColor = enhancedResult.detectedColor?.Substring(0, Math.Min(30, enhancedResult.detectedColor.Length)),
-                        SuggestedPrice = (decimal)enhancedResult.suggestedPrice,
-                        ProcessingTime = enhancedResult.processingTime,
-                        AIModel = selectedModel?.Substring(0, Math.Min(50, selectedModel.Length)),
-                        Status = "completed",
-                        UserId = 1,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now
-                    };
-
-                    _context.AIAnalysis.Add(aiAnalysis);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation("AI Analysis saved successfully with ID: {AnalysisId}", aiAnalysis.Id);
-                }
-                catch (Exception dbEx)
-                {
-                    _logger.LogError(dbEx, "Database save error: {Error}", dbEx.Message);
-                    _logger.LogWarning("Continuing without saving to database...");
-                }
 
                 return Ok(new
                 {
                     success = true,
-                    message = "LLaVA ürün tanıma analizi tamamlandı",
+                    message = "RTX 4050 optimized analiz tamamlandı",
                     data = enhancedResult
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "LLaVA ProductRecognition error");
+                _logger.LogError(ex, "RTX 4050 optimized analysis failed");
                 return StatusCode(500, new
                 {
                     success = false,

@@ -2,9 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\bin",
-    "\\Data\\Configurations",
     "\\wwwroot"
   ],
-  "SelectedNode": "\\AIVentory-backend.http",
+  "SelectedNode": "\\DefaultHttpClientFactory.cs",
   "PreviewInSolutionExplorer": false
 }
