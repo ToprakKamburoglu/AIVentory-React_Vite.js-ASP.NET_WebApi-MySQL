@@ -1,99 +1,119 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ImageUpload from '../../../components/ImageUpload'; 
+import {useAuth} from '../../../hooks/useAuth.jsx'; 
 
 const ManagerAddProduct = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
+    companyId: user.companyId,
     name: '',
     description: '',
-    category: '',
+    categoryId: '1',
     brand: '',
     model: '',
+    color: '',
     price: '',
-    cost: '',
-    stock: '',
-    minStock: '',
+    costPrice: '',
+    currentStock: '',
+    minimumStock: '',
     barcode: '',
-    image: null
+    imageUrl: '' 
   });
 
-  const [categories] = useState([
-    'Telefon',
-    'Bilgisayar',
-    'Kulaklık',
-    'Şarj Aleti',
-    'Kılıf',
-    'Powerbank',
-    'Tablet',
-    'Saat'
-  ]);
-
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const API_BASE_URL = 'http://localhost:5000/api';
 
   useEffect(() => {
+    loadCategories();
     if (isEditMode && id) {
-      
       loadProductData(id);
     }
   }, [id, isEditMode]);
 
+  const loadCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setCategories(result.data);
+      } else {
+        console.error('Kategoriler yüklenirken hata:', result.message);
+        setFallbackCategories();
+      }
+    } catch (error) {
+      console.error('Kategori yükleme hatası:', error);
+      setFallbackCategories();
+    }
+  };
+
+  const setFallbackCategories = () => {
+    const fallbackCategories = [
+      { id: 1, name: 'Elektronik' },
+      { id: 2, name: 'Gıda' },
+      { id: 3, name: 'Giyim' },
+      { id: 4, name: 'Kozmetik' },
+      { id: 5, name: 'Ev & Yaşam' }
+    ];
+    setCategories(fallbackCategories);
+  };
+
   const loadProductData = async (productId) => {
     setLoading(true);
     try {
-      
-      const mockProducts = {
-        '1': {
-          name: 'iPhone 15 Pro',
-          description: 'Apple iPhone 15 Pro 256GB Space Black',
-          category: 'Telefon',
-          brand: 'Apple',
-          model: 'iPhone 15 Pro',
-          price: '45000',
-          cost: '40000',
-          stock: '15',
-          minStock: '5',
-          barcode: '1234567890123',
-          image: null
-        },
-        '2': {
-          name: 'Samsung Galaxy S24',
-          description: 'Samsung Galaxy S24 Ultra 512GB',
-          category: 'Telefon',
-          brand: 'Samsung',
-          model: 'Galaxy S24',
-          price: '35000',
-          cost: '30000',
-          stock: '12',
-          minStock: '10',
-          barcode: '1234567890124',
-          image: null
-        },
-        '3': {
-          name: 'AirPods Pro 2',
-          description: 'Apple AirPods Pro 2nd Generation',
-          category: 'Kulaklık',
-          brand: 'Apple',
-          model: 'AirPods Pro 2',
-          price: '7000',
-          cost: '6000',
-          stock: '8',
-          minStock: '5',
-          barcode: '1234567890125',
-          image: null
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      };
-
-      const productData = mockProducts[productId] || mockProducts['1'];
-      setFormData(productData);
+      });
+      const result = await response.json();
       
+      console.log('Load Product Response:', result);
+      
+      if (result.success) {
+        const product = result.data;
+        setFormData({
+          name: product.name || '',
+          description: product.description || '',
+          categoryId: product.categoryId?.toString() || '1',
+          brand: product.brand || '',
+          model: product.model || '',
+          color: product.color || '',
+          price: product.price?.toString() || '',
+          costPrice: product.costPrice?.toString() || '',
+          currentStock: product.currentStock?.toString() || '',
+          minimumStock: product.minimumStock?.toString() || '',
+          barcode: product.barcode || '',
+          imageUrl: product.imageUrl || '' 
+        });
+        
+        console.log('Loaded product data:', product);
+      } else {
+        alert('Ürün bilgileri yüklenirken hata oluştu!');
+        navigate('/manager/products');
+      }
     } catch (error) {
       console.error('Ürün yükleme hatası:', error);
-     
       alert('Ürün bilgileri yüklenirken hata oluştu!');
+      navigate('/manager/products');
     } finally {
       setLoading(false);
     }
@@ -106,7 +126,6 @@ const ManagerAddProduct = () => {
       [name]: value
     }));
     
-   
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -115,56 +134,104 @@ const ManagerAddProduct = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Dosya boyutu 5MB\'dan küçük olmalıdır!');
-        return;
-      }
-      
-      
-      if (!file.type.startsWith('image/')) {
-        alert('Lütfen sadece resim dosyası seçin!');
-        return;
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        image: file
-      }));
+  
+  const handleImageUpload = (relativePath, fullUrl) => {
+    console.log('Image uploaded:', { relativePath, fullUrl });
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: relativePath 
+    }));
+  };
+
+  const handleCategoryChange = (e) => {
+    const value = e.target.value;
+    
+    if (value === 'new') {
+      setShowNewCategoryInput(true);
+      setFormData(prev => ({ ...prev, categoryId: '' }));
+    } else {
+      setShowNewCategoryInput(false);
+      setFormData(prev => ({ ...prev, categoryId: value }));
     }
   };
+
+  const handleAddNewCategory = async () => {
+  if (!newCategoryName.trim()) {
+    alert('Kategori adı boş olamaz!');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/categories`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newCategoryName.trim(),
+        description: `${newCategoryName} kategorisi`,
+        companyId: user.companyId 
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      await loadCategories();
+      setFormData(prev => ({
+        ...prev,
+        categoryId: result.data.id.toString()
+      }));
+      setNewCategoryName('');
+      setShowNewCategoryInput(false);
+      alert('Yeni kategori başarıyla eklendi!');
+    } else {
+      alert(result.message || 'Kategori eklenirken hata oluştu!');
+    }
+  } catch (error) {
+    console.error('Kategori ekleme hatası:', error);
+    alert('Kategori eklenirken hata oluştu!');
+  }
+};
+
+console.log('user.companyId:', user.companyId); 
 
   const validateForm = () => {
     const newErrors = {};
 
-   
     if (!formData.name.trim()) newErrors.name = 'Ürün adı gereklidir';
-    if (!formData.category) newErrors.category = 'Kategori seçilmelidir';
+    
+    if (showNewCategoryInput) {
+      if (!newCategoryName.trim()) {
+        newErrors.categoryId = 'Yeni kategori adı gereklidir';
+      }
+    } else {
+      if (!formData.categoryId) {
+        newErrors.categoryId = 'Kategori seçilmelidir'; 
+      }
+    }
+    
     if (!formData.brand.trim()) newErrors.brand = 'Marka gereklidir';
     
-   
     if (!formData.price || parseFloat(formData.price) <= 0) {
       newErrors.price = 'Geçerli bir fiyat giriniz';
     }
-    if (!formData.cost || parseFloat(formData.cost) <= 0) {
-      newErrors.cost = 'Geçerli bir maliyet giriniz';
+    if (!formData.costPrice || parseFloat(formData.costPrice) <= 0) {
+      newErrors.costPrice = 'Geçerli bir maliyet giriniz';
     }
-    if (formData.stock === '' || parseInt(formData.stock) < 0) {
-      newErrors.stock = 'Geçerli bir stok miktarı giriniz';
+    if (formData.currentStock === '' || parseInt(formData.currentStock) < 0) {
+      newErrors.currentStock = 'Geçerli bir stok miktarı giriniz';
     }
-    if (formData.minStock === '' || parseInt(formData.minStock) < 0) {
-      newErrors.minStock = 'Geçerli bir minimum stok giriniz';
+    if (formData.minimumStock === '' || parseInt(formData.minimumStock) < 0) {
+      newErrors.minimumStock = 'Geçerli bir minimum stok giriniz';
     }
 
-   
-    if (formData.price && formData.cost && parseFloat(formData.cost) >= parseFloat(formData.price)) {
+    if (formData.price && formData.costPrice && parseFloat(formData.costPrice) >= parseFloat(formData.price)) {
       newErrors.price = 'Satış fiyatı maliyetten büyük olmalıdır';
     }
 
-   
     if (formData.barcode && formData.barcode.length < 8) {
       newErrors.barcode = 'Barkod en az 8 karakter olmalıdır';
     }
@@ -176,8 +243,42 @@ const ManagerAddProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (showNewCategoryInput && newCategoryName.trim()) {
+      try {
+        const token = localStorage.getItem('token');
+        const categoryResponse = await fetch(`${API_BASE_URL}/categories`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: newCategoryName.trim(),
+            description: `${newCategoryName} kategorisi`,
+            companyId: user.companyId
+          })
+        });
+
+        const categoryResult = await categoryResponse.json();
+        
+        if (categoryResult.success) {
+          setFormData(prev => ({
+            ...prev,
+            categoryId: categoryResult.data.id.toString()
+          }));
+          await loadCategories();
+        } else {
+          alert('Kategori eklenirken hata oluştu: ' + categoryResult.message);
+          return;
+        }
+      } catch (error) {
+        console.error('Kategori ekleme hatası:', error);
+        alert('Kategori eklenirken hata oluştu!');
+        return;
+      }
+    }
+    
     if (!validateForm()) {
-     
       const firstErrorField = Object.keys(errors)[0];
       const element = document.getElementsByName(firstErrorField)[0];
       if (element) {
@@ -189,29 +290,68 @@ const ManagerAddProduct = () => {
 
     setLoading(true);
     try {
-     
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== '') {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      const dataToSend = {
+        name: formData.name,
+        description: formData.description,
+        categoryId: parseInt(formData.categoryId),
+        companyId: user.companyId,
+        brand: formData.brand,
+        model: formData.model,
+        color: formData.color,
+        price: parseFloat(formData.price),
+        costPrice: parseFloat(formData.costPrice),
+        currentStock: parseInt(formData.currentStock),
+        minimumStock: parseInt(formData.minimumStock),
+        barcode: formData.barcode || null,
+        imageUrl: formData.imageUrl || null 
+      };
 
+      console.log('Gönderilecek veri:', dataToSend);
+
+      const token = localStorage.getItem('token');
+      let response;
       if (isEditMode) {
-        
-        console.log('Ürün güncellendi:', formData);
-        alert('Ürün başarıyla güncellendi!');
+        response = await fetch(`${API_BASE_URL}/products/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToSend)
+        });
       } else {
-       
-        console.log('Yeni ürün eklendi:', formData);
-        alert('Ürün başarıyla eklendi!');
+        response = await fetch(`${API_BASE_URL}/products`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToSend)
+        });
       }
 
-      navigate('/manager/products');
+      const result = await response.json();
+      console.log('API Response:', result);
+
+      if (result.success) {
+        alert(isEditMode ? 'Ürün başarıyla güncellendi!' : 'Ürün başarıyla eklendi!');
+        navigate('/manager/products');
+      } else {
+        console.error('API Error Details:', result);
+        
+        if (result.errors) {
+          const errorMessages = Object.entries(result.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join('\n');
+          alert(`Doğrulama hataları:\n${errorMessages}`);
+        } else {
+          alert(result.message || 'İşlem sırasında hata oluştu!');
+        }
+      }
       
     } catch (error) {
-      console.error('Kaydetme hatası:', error);
-      alert('Kaydetme işlemi sırasında hata oluştu!');
+      console.error('API Error:', error);
+      alert('Sunucuya bağlanırken hata oluştu: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -219,13 +359,13 @@ const ManagerAddProduct = () => {
 
   const calculateProfit = () => {
     const price = parseFloat(formData.price) || 0;
-    const cost = parseFloat(formData.cost) || 0;
+    const cost = parseFloat(formData.costPrice) || 0;
     return price - cost;
   };
 
   const calculateProfitMargin = () => {
     const price = parseFloat(formData.price) || 0;
-    const cost = parseFloat(formData.cost) || 0;
+    const cost = parseFloat(formData.costPrice) || 0;
     if (price === 0) return 0;
     return ((price - cost) / price * 100).toFixed(2);
   };
@@ -233,7 +373,9 @@ const ManagerAddProduct = () => {
   if (loading && isEditMode) {
     return (
       <div className="text-center py-5">
-        <div className="loading-spinner lg"></div>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Yükleniyor...</span>
+        </div>
         <p className="mt-3 text-gray">Ürün bilgileri yükleniyor...</p>
       </div>
     );
@@ -242,7 +384,7 @@ const ManagerAddProduct = () => {
   return (
     <div className="add-product-page">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 pt-4">
         <div>
           <h1 className="text-main mb-2">
             <i className={`fas ${isEditMode ? 'fa-edit' : 'fa-plus-circle'} me-2`}></i>
@@ -266,15 +408,18 @@ const ManagerAddProduct = () => {
         {/* Form Section */}
         <div className="col-lg-8">
           <div className="dashboard-card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <i className="fas fa-info-circle text-main me-2"></i>
-                Ürün Bilgileri
-              </h3>
-            </div>
-            <div className="card-body">
+            <div className="card-body" style={{ padding: '2.5rem' }}>
               <form onSubmit={handleSubmit}>
-                <div className="row">
+                <div className="row g-4">
+                  {/* ✅ Image Upload Component */}
+                  <div className="col-12">
+                    <ImageUpload 
+                      onImageUpload={handleImageUpload}
+                      currentImage={formData.imageUrl ? `${API_BASE_URL.replace('/api', '')}${formData.imageUrl}` : null}
+                      folder="products"
+                    />
+                  </div>
+
                   {/* Ürün Adı */}
                   <div className="col-md-6">
                     <div className="form-group">
@@ -289,6 +434,7 @@ const ManagerAddProduct = () => {
                         onChange={handleInputChange}
                         placeholder="Örn: iPhone 15 Pro"
                         maxLength="100"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
                       {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                     </div>
@@ -301,18 +447,69 @@ const ManagerAddProduct = () => {
                         Kategori <span className="text-danger">*</span>
                       </label>
                       <select
-                        className={`form-control form-select ${errors.category ? 'is-invalid' : ''}`}
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
+                        className={`form-control form-select ${errors.categoryId ? 'is-invalid' : ''}`}
+                        name="categoryId"
+                        value={showNewCategoryInput ? 'new' : formData.categoryId}
+                        onChange={handleCategoryChange}
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       >
                         <option value="">Kategori seçin</option>
                         {categories.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
+                        <option value="new" style={{ color: '#28a745', fontWeight: 'bold' }}>+ Yeni Kategori Ekle</option>
                       </select>
-                      {errors.category && <div className="invalid-feedback">{errors.category}</div>}
+                      {errors.categoryId && <div className="invalid-feedback">{errors.categoryId}</div>}
                     </div>
+                    
+                    {/* Yeni kategori input'u */}
+                    {showNewCategoryInput && (
+                      <div className="form-group mt-3">
+                        <label className="form-label">
+                          Yeni Kategori Adı <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group">
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            placeholder="Kategori adını girin..."
+                            maxLength="100"
+                            style={{ padding: '0.75rem', fontSize: '1rem' }}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddNewCategory();
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-success"
+                            onClick={handleAddNewCategory}
+                            disabled={!newCategoryName.trim()}
+                          >
+                            <i className="fas fa-plus me-1"></i>
+                            Ekle
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                              setShowNewCategoryInput(false);
+                              setNewCategoryName('');
+                              setFormData(prev => ({ ...prev, categoryId: categories[0]?.id?.toString() || '1' }));
+                            }}
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                        <small className="text-muted">
+                          Enter tuşuna basarak da kategori ekleyebilirsiniz
+                        </small>
+                      </div>
+                    )}
                   </div>
 
                   {/* Marka */}
@@ -329,6 +526,7 @@ const ManagerAddProduct = () => {
                         onChange={handleInputChange}
                         placeholder="Örn: Apple"
                         maxLength="50"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
                       {errors.brand && <div className="invalid-feedback">{errors.brand}</div>}
                     </div>
@@ -346,7 +544,43 @@ const ManagerAddProduct = () => {
                         onChange={handleInputChange}
                         placeholder="Örn: iPhone 15 Pro"
                         maxLength="50"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
+                    </div>
+                  </div>
+
+                  {/* Renk */}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label className="form-label">Renk</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="color"
+                        value={formData.color}
+                        onChange={handleInputChange}
+                        placeholder="Örn: Siyah, Beyaz, Mavi"
+                        maxLength="30"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Barkod */}
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label className="form-label">Barkod</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.barcode ? 'is-invalid' : ''}`}
+                        name="barcode"
+                        value={formData.barcode}
+                        onChange={handleInputChange}
+                        placeholder="Barkod numarası"
+                        maxLength="20"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
+                      />
+                      {errors.barcode && <div className="invalid-feedback">{errors.barcode}</div>}
                     </div>
                   </div>
 
@@ -359,9 +593,10 @@ const ManagerAddProduct = () => {
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        rows="3"
+                        rows="4"
                         placeholder="Ürün hakkında detaylı bilgi..."
                         maxLength="500"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
                       <small className="text-gray">
                         {formData.description.length}/500 karakter
@@ -384,6 +619,7 @@ const ManagerAddProduct = () => {
                         min="0"
                         step="0.01"
                         placeholder="0.00"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
                       {errors.price && <div className="invalid-feedback">{errors.price}</div>}
                     </div>
@@ -397,15 +633,16 @@ const ManagerAddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        className={`form-control ${errors.cost ? 'is-invalid' : ''}`}
-                        name="cost"
-                        value={formData.cost}
+                        className={`form-control ${errors.costPrice ? 'is-invalid' : ''}`}
+                        name="costPrice"
+                        value={formData.costPrice}
                         onChange={handleInputChange}
                         min="0"
                         step="0.01"
                         placeholder="0.00"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
-                      {errors.cost && <div className="invalid-feedback">{errors.cost}</div>}
+                      {errors.costPrice && <div className="invalid-feedback">{errors.costPrice}</div>}
                     </div>
                   </div>
 
@@ -417,14 +654,15 @@ const ManagerAddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        className={`form-control ${errors.stock ? 'is-invalid' : ''}`}
-                        name="stock"
-                        value={formData.stock}
+                        className={`form-control ${errors.currentStock ? 'is-invalid' : ''}`}
+                        name="currentStock"
+                        value={formData.currentStock}
                         onChange={handleInputChange}
                         min="0"
                         placeholder="0"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
-                      {errors.stock && <div className="invalid-feedback">{errors.stock}</div>}
+                      {errors.currentStock && <div className="invalid-feedback">{errors.currentStock}</div>}
                     </div>
                   </div>
 
@@ -436,37 +674,21 @@ const ManagerAddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        className={`form-control ${errors.minStock ? 'is-invalid' : ''}`}
-                        name="minStock"
-                        value={formData.minStock}
+                        className={`form-control ${errors.minimumStock ? 'is-invalid' : ''}`}
+                        name="minimumStock"
+                        value={formData.minimumStock}
                         onChange={handleInputChange}
                         min="0"
                         placeholder="0"
+                        style={{ padding: '0.75rem', fontSize: '1rem' }}
                       />
-                      {errors.minStock && <div className="invalid-feedback">{errors.minStock}</div>}
-                    </div>
-                  </div>
-
-                  {/* Barkod */}
-                  <div className="col-md-12">
-                    <div className="form-group">
-                      <label className="form-label">Barkod</label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.barcode ? 'is-invalid' : ''}`}
-                        name="barcode"
-                        value={formData.barcode}
-                        onChange={handleInputChange}
-                        placeholder="Barkod numarası"
-                        maxLength="20"
-                      />
-                      {errors.barcode && <div className="invalid-feedback">{errors.barcode}</div>}
+                      {errors.minimumStock && <div className="invalid-feedback">{errors.minimumStock}</div>}
                     </div>
                   </div>
                 </div>
 
                 {/* Form Buttons */}
-                <div className="d-flex gap-3 mt-4">
+                <div className="d-flex gap-3 mt-5 pt-4" style={{ borderTop: '1px solid #dee2e6' }}>
                   <button 
                     type="submit" 
                     className="btn btn-main"
@@ -474,7 +696,7 @@ const ManagerAddProduct = () => {
                   >
                     {loading ? (
                       <>
-                        <div className="loading-spinner me-2"></div>
+                        <div className="spinner-border spinner-border-sm me-2" role="status"></div>
                         {isEditMode ? 'Güncelleniyor...' : 'Kaydediliyor...'}
                       </>
                     ) : (
@@ -500,18 +722,20 @@ const ManagerAddProduct = () => {
                         setFormData({
                           name: '',
                           description: '',
-                          category: '',
+                          categoryId: '1',
                           brand: '',
                           model: '',
+                          color: '',
                           price: '',
-                          cost: '',
-                          stock: '',
-                          minStock: '',
+                          costPrice: '',
+                          currentStock: '',
+                          minimumStock: '',
                           barcode: '',
-                          image: null
+                          imageUrl: ''
                         });
                         setErrors({});
                       }}
+                      disabled={loading}
                     >
                       <i className="fas fa-undo me-2"></i>
                       Temizle
@@ -525,83 +749,58 @@ const ManagerAddProduct = () => {
 
         {/* Sidebar */}
         <div className="col-lg-4">
-          {/* Image Upload */}
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <i className="fas fa-image text-main me-2"></i>
-                Ürün Fotoğrafı
-              </h3>
-            </div>
-            <div className="card-body">
-              <div className="text-center">
-                <div className="product-image-upload">
-                  {formData.image ? (
-                    <div className="uploaded-image">
-                      <img 
-                        src={URL.createObjectURL(formData.image)} 
-                        alt="Ürün" 
-                        className="img-fluid rounded"
-                        style={{ maxHeight: '200px', maxWidth: '100%' }}
-                      />
-                      <button 
-                        type="button" 
-                        className="btn btn-sm btn-danger mt-2"
-                        onClick={() => setFormData(prev => ({ ...prev, image: null }))}
-                      >
-                        <i className="fas fa-trash me-1"></i>
-                        Kaldır
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="upload-placeholder p-4 border-2 border-dashed border-gray rounded text-center">
-                      <i className="fas fa-cloud-upload-alt text-gray fs-1 mb-3"></i>
-                      <p className="text-gray mb-3">Ürün fotoğrafı yükleyin</p>
-                      <input
-                        type="file"
-                        className="d-none"
-                        id="productImage"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                      />
-                      <label htmlFor="productImage" className="btn btn-outline-main">
-                        <i className="fas fa-upload me-2"></i>
-                        Fotoğraf Seç
-                      </label>
-                    </div>
-                  )}
-                </div>
+          {/* Stok Bilgisi */}
+          {formData.currentStock && (
+            <div className="dashboard-card p-3 mb-3">
+              <div className="card-header">
+                <h3 className="card-title">
+                  <i className="fas fa-boxes text-info me-2"></i>
+                  Stok Bilgisi
+                </h3>
               </div>
-
-              <div className="mt-4">
-                <div className="alert alert-info">
-                  <i className="fas fa-info-circle me-2"></i>
-                  <small>
-                    <strong>İpucu:</strong> En iyi sonuç için ürünün net ve tamamen görünür olduğu fotoğraflar kullanın. 
-                    Maksimum dosya boyutu: 5MB
-                  </small>
+              <div className="card-body pt-3">
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Mevcut Stok:</span>
+                  <span className="fw-bold text-primary">{formData.currentStock} adet</span>
                 </div>
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Minimum Stok:</span>
+                  <span className="fw-bold">{formData.minimumStock || '0'} adet</span>
+                </div>
+                {formData.currentStock && formData.minimumStock && (
+                  <div className="progress mt-2" style={{ height: '6px' }}>
+                    <div 
+                      className={`progress-bar ${
+                        parseInt(formData.currentStock) <= parseInt(formData.minimumStock) ? 'bg-danger' : 
+                        parseInt(formData.currentStock) <= parseInt(formData.minimumStock) * 1.5 ? 'bg-warning' : 'bg-success'
+                      }`}
+                      style={{ 
+                        width: `${Math.min(100, Math.max(10, (parseInt(formData.currentStock) / (parseInt(formData.minimumStock) * 3)) * 100))}%` 
+                      }}
+                    ></div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Profit Calculation */}
-          {formData.price && formData.cost && (
-            <div className="dashboard-card mt-4">
+          {/* Kar Hesaplama */}
+          {formData.price && formData.costPrice && (
+            <div className="dashboard-card p-3 mb-3">
               <div className="card-header">
                 <h3 className="card-title">
                   <i className="fas fa-calculator text-main me-2"></i>
                   Kar Hesaplama
                 </h3>
               </div>
-              <div className="card-body">
+              <div className="card-body pt-3">
                 <div className="d-flex justify-content-between mb-2">
                   <span>Satış Fiyatı:</span>
                   <span className="fw-bold">₺{parseFloat(formData.price || 0).toLocaleString()}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Maliyet:</span>
-                  <span className="fw-bold">₺{parseFloat(formData.cost || 0).toLocaleString()}</span>
+                  <span className="fw-bold">₺{parseFloat(formData.costPrice || 0).toLocaleString()}</span>
                 </div>
                 <hr />
                 <div className="d-flex justify-content-between mb-2">
@@ -627,9 +826,9 @@ const ManagerAddProduct = () => {
             </div>
           )}
 
-          {/* Quick Tips */}
-          <div className="dashboard-card mt-4">
-            <div className="card-header">
+          {/* İpuçları */}
+          <div className="dashboard-card p-3">
+            <div className="card-header pb-3">
               <h3 className="card-title">
                 <i className="fas fa-lightbulb text-warning me-2"></i>
                 İpuçları
@@ -637,6 +836,10 @@ const ManagerAddProduct = () => {
             </div>
             <div className="card-body">
               <div className="tips-list">
+                <div className="tip-item mb-3">
+                  <i className="fas fa-check text-success me-2"></i>
+                  <small>Resim yüklemek ürün tanıtımını geliştirir</small>
+                </div>
                 <div className="tip-item mb-3">
                   <i className="fas fa-check text-success me-2"></i>
                   <small>Ürün adını net ve açık yazın</small>

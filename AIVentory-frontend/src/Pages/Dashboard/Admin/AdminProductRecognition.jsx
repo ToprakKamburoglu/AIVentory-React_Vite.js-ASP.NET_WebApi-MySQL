@@ -1,59 +1,143 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth.jsx';
 
 const AdminProductRecognition = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [analysisHistory, setAnalysisHistory] = useState([
-    {
-      id: 1,
-      date: '2024-01-15 14:30',
-      image: '/images/demo-product-1.jpg',
-      result: {
-        productName: 'iPhone 15 Pro',
-        category: 'Elektronik',
-        brand: 'Apple',
-        confidence: 94.7,
-        estimatedPrice: 67500.00,
-        color: 'Titanyum Doğal',
-        features: ['128GB', '6.1 inç', 'Pro Kamera Sistemi']
-      },
-      status: 'completed'
-    },
-    {
-      id: 2,
-      date: '2024-01-15 13:45',
-      image: '/images/demo-product-2.jpg',
-      result: {
-        productName: 'Samsung Galaxy S24',
-        category: 'Elektronik',
-        brand: 'Samsung',
-        confidence: 89.3,
-        estimatedPrice: 35000.00,
-        color: 'Phantom Black',
-        features: ['256GB', '6.2 inç', 'Triple Kamera']
-      },
-      status: 'completed'
-    },
-    {
-      id: 3,
-      date: '2024-01-15 12:30',
-      image: '/images/demo-product-3.jpg',
-      result: {
-        productName: 'MacBook Air M2',
-        category: 'Elektronik',
-        brand: 'Apple',
-        confidence: 96.1,
-        estimatedPrice: 54900.00,
-        color: 'Space Gray',
-        features: ['M2 Chip', '13.6 inç', '8GB RAM']
-      },
-      status: 'completed'
-    }
-  ]);
+  const [analysisHistory, setAnalysisHistory] = useState([]);
+  const [ollamaStatus, setOllamaStatus] = useState({ connected: false, models: [] });
+  const [statistics, setStatistics] = useState({
+    totalAnalyses: 0,
+    todayAnalyses: 0,
+    successfulAnalyses: 0,
+    averageConfidence: 0
+  });
+  const [categories, setCategories] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
   
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+  useEffect(() => {
+    checkOllamaStatus();
+    loadStatistics();
+    loadAnalysisHistory();
+    loadCategories();
+  }, []);
+
+  // Ollama bağlantı durumunu kontrol et
+  const checkOllamaStatus = async () => {
+    try {
+      console.log('Checking Ollama status...'); 
+      console.log('API URL:', `${API_BASE_URL}/AI/test-ollama`); 
+      
+      const response = await fetch(`${API_BASE_URL}/AI/test-ollama`);
+      console.log('Ollama test response status:', response.status); 
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ollama test error:', errorText);
+        throw new Error(`Ollama test failed (${response.status}): ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Ollama test result:', result); 
+      
+      if (result.success) {
+        setOllamaStatus({
+          connected: true,
+          models: result.data.models || [],
+          connectionStatus: result.data.connectionStatus
+        });
+        console.log('Ollama connected successfully with models:', result.data.models);
+      } else {
+        console.warn('Ollama test returned success=false:', result.message);
+        setOllamaStatus({ 
+          connected: false, 
+          models: [], 
+          error: result.message || 'Ollama bağlantı testi başarısız'
+        });
+      }
+    } catch (error) {
+      console.error('Ollama status check failed:', error);
+      setOllamaStatus({ 
+        connected: false, 
+        models: [], 
+        error: error.message || 'Bağlantı hatası' 
+      });
+    }
+  };
+
+
+  const loadStatistics = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/AI/statistics`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setStatistics(result.data);
+      }
+    } catch (error) {
+      console.error('Statistics load failed:', error);
+    }
+  };
+
+
+  const loadAnalysisHistory = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/AI/analyses?analysisType=ai_product_recognition`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setAnalysisHistory(result.data.slice(0, 10)); 
+      }
+    } catch (error) {
+      console.error('History load failed:', error);
+    }
+  };
+
+ 
+  const loadCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setCategories(result.data);
+      } else {
+        console.error('Kategoriler yüklenirken hata:', result.message);
+        setFallbackCategories();
+      }
+    } catch (error) {
+      console.error('Kategori yükleme hatası:', error);
+      setFallbackCategories();
+    }
+  };
+
+  const setFallbackCategories = () => {
+    const fallbackCategories = [
+      { id: 1, name: 'Elektronik' },
+      { id: 2, name: 'Gıda' },
+      { id: 3, name: 'Giyim' },
+      { id: 4, name: 'Kozmetik' },
+      { id: 5, name: 'Ev & Yaşam' }
+    ];
+    setCategories(fallbackCategories);
+  };
+
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -64,7 +148,7 @@ const AdminProductRecognition = () => {
         return;
       }
 
-     
+    
       if (!file.type.startsWith('image/')) {
         alert('Lütfen sadece görsel dosyası seçin.');
         return;
@@ -77,7 +161,8 @@ const AdminProductRecognition = () => {
           preview: e.target.result,
           name: file.name,
           size: file.size,
-          type: file.type
+          type: file.type,
+          base64: e.target.result.split(',')[1] 
         });
         setAnalysisResult(null);
       };
@@ -96,6 +181,7 @@ const AdminProductRecognition = () => {
       fileInputRef.current.click();
     }
   };
+
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -120,7 +206,6 @@ const AdminProductRecognition = () => {
     if (files.length > 0) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
-       
         if (file.size > 10 * 1024 * 1024) {
           alert('Dosya boyutu çok büyük. Maksimum 10MB yükleyebilirsiniz.');
           return;
@@ -133,7 +218,8 @@ const AdminProductRecognition = () => {
             preview: e.target.result,
             name: file.name,
             size: file.size,
-            type: file.type
+            type: file.type,
+            base64: e.target.result.split(',')[1]
           });
           setAnalysisResult(null);
         };
@@ -144,9 +230,15 @@ const AdminProductRecognition = () => {
     }
   };
 
+
   const analyzeImage = async () => {
     if (!selectedImage) {
       alert('Lütfen önce bir görsel seçin.');
+      return;
+    }
+
+    if (!ollamaStatus.connected) {
+      alert('Ollama bağlantısı kurulamadı. Lütfen Ollama servisinin çalıştığından emin olun.');
       return;
     }
 
@@ -154,88 +246,204 @@ const AdminProductRecognition = () => {
     setAnalysisResult(null);
 
     try {
-     
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      await new Promise(resolve => setTimeout(resolve, 1500)); 
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      await new Promise(resolve => setTimeout(resolve, 500));  
+      console.log('Starting AI analysis...'); 
+      console.log('API URL:', `${API_BASE_URL}/AI/product-recognition`); 
+      console.log('Image base64 length:', selectedImage.base64?.length); 
 
       
-      const demoResult = {
-        productName: 'MacBook Air M2',
-        category: 'Elektronik',
-        subcategory: 'Laptop',
-        brand: 'Apple',
-        model: 'MacBook Air',
-        year: '2024',
-        confidence: 92.4,
-        estimatedPrice: 54900.00,
-        priceRange: {
-          min: 52000.00,
-          max: 58000.00
+      const response = await fetch(`${API_BASE_URL}/AI/product-recognition`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        color: 'Space Gray',
-        colorCode: '#4A4A4A',
-        features: ['M2 Chip', '13.6 inç', '8GB RAM', '256GB SSD'],
-        description: 'Apple MacBook Air 13" M2 çip ile güçlendirilmiş, hafif ve taşınabilir laptop.',
-        specifications: {
-          processor: 'Apple M2',
-          memory: '8GB Unified Memory',
-          storage: '256GB SSD',
-          display: '13.6" Liquid Retina Display',
-          graphics: '8-core GPU',
-          connectivity: 'Wi-Fi 6, Bluetooth 5.0',
-          ports: '2x Thunderbolt/USB 4, 3.5mm Jack',
-          battery: '18 saate kadar pil ömrü',
-          weight: '1.24 kg',
-          dimensions: '30.41 x 21.5 x 1.13 cm'
-        },
-        aiInsights: [
-          'Ürün yeni nesil M2 işlemci ile donatılmış',
-          'Pazar değeri son 3 ayda %8 artmış',
-          'Bu modelin stok tükenmesi 2-3 hafta içinde bekleniyor',
-          'Benzer ürünlere göre %15 daha rekabetçi fiyatlı',
-          'Müşteri memnuniyeti %94 oranında yüksek',
-          'Cross-selling potansiyeli: Aksesuar ve kılıf'
-        ],
-        marketAnalysis: {
-          demand: 'Yüksek',
-          competition: 'Orta',
-          profitMargin: '23%',
-          turnoverRate: '8.5x/yıl',
-          customerRating: 4.7,
-          returnRate: '2.1%'
-        },
-        similarProducts: [
-          { name: 'MacBook Air M1', similarity: 89, price: 45900 },
-          { name: 'MacBook Pro 13"', similarity: 76, price: 67900 },
-          { name: 'Surface Laptop 5', similarity: 64, price: 42900 }
-        ],
-        suggestedCategories: ['Laptop', 'Apple Ürünleri', 'Premium Elektronik'],
-        keywordTags: ['macbook', 'apple', 'laptop', 'm2', 'portable', 'premium'],
-        barcodeSuggestion: null,
-        processingTime: 3.2,
-        analysisDate: new Date().toISOString()
-      };
+        body: JSON.stringify({
+          imageBase64: selectedImage.base64,
+          imageUrl: null
+        })
+      });
 
-      setAnalysisResult(demoResult);
+      console.log('Response status:', response.status); 
+      console.log('Response ok:', response.ok); 
 
-     
-      const newHistoryItem = {
-        id: Date.now(),
-        date: new Date().toLocaleString('tr-TR'),
-        image: selectedImage.preview,
-        result: demoResult,
-        status: 'completed'
-      };
+      // Response'u kontrol et
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API isteği başarısız (${response.status}): ${errorText}`);
+      }
 
-      setAnalysisHistory(prev => [newHistoryItem, ...prev.slice(0, 9)]); 
+      const result = await response.json();
+      console.log('API Response:', result); 
+
+      if (result.success) {
+        
+        const formattedResult = {
+          productName: result.data.detectedName || 'AI Tanımlı Ürün',
+          category: result.data.detectedCategory || 'Elektronik',
+          subcategory: result.data.detectedCategory || 'Elektronik',
+          brand: result.data.detectedBrand || 'Bilinmeyen',
+          model: result.data.detectedName || 'Model Bilinmiyor',
+          year: new Date().getFullYear().toString(),
+          confidence: result.data.confidence || 75,
+          estimatedPrice: result.data.suggestedPrice || 100,
+          priceRange: {
+            min: (result.data.suggestedPrice || 100) * 0.85,
+            max: (result.data.suggestedPrice || 100) * 1.15
+          },
+          color: result.data.detectedColor || 'Çeşitli',
+          colorCode: '#4A4A4A',
+          features: result.data.features || ['AI Analizi', 'Otomatik Tespit'],
+          description: result.data.description || 'AI analizi ile tespit edildi',
+          specifications: result.data.specifications || {
+            processor: 'Bilinmiyor',
+            memory: 'Bilinmiyor',
+            storage: 'Bilinmiyor'
+          },
+          aiInsights: result.data.aiInsights || [
+            'AI tarafından başarıyla analiz edildi',
+            'Ürün özellikleri tespit edildi',
+            'Fiyat tahmini oluşturuldu'
+          ],
+          marketAnalysis: result.data.marketAnalysis || {
+            demand: 'Orta',
+            competition: 'Orta',
+            profitMargin: '20%',
+            turnoverRate: '6x/yıl',
+            customerRating: 4.0,
+            returnRate: '3%'
+          },
+          similarProducts: [
+            { name: 'Benzer Ürün 1', similarity: 85, price: (result.data.suggestedPrice || 100) * 0.9 },
+            { name: 'Benzer Ürün 2', similarity: 78, price: (result.data.suggestedPrice || 100) * 1.1 }
+          ],
+          suggestedCategories: [result.data.detectedCategory || 'Elektronik'],
+          keywordTags: ['ai', 'analiz', 'ürün'],
+          barcodeSuggestion: null,
+          processingTime: (result.data.processingTime || 3000) / 1000, 
+          analysisDate: new Date().toISOString(),
+          aiModel: result.data.aiModel || 'AI Model'
+        };
+
+        console.log('Formatted result:', formattedResult); 
+        setAnalysisResult(formattedResult);
+        
+       
+        loadStatistics();
+        loadAnalysisHistory();
+        
+      } else {
+        console.error('API returned success=false:', result);
+        throw new Error(result.message || result.error || 'Analiz başarısız');
+      }
 
     } catch (error) {
-      console.error('Analysis error:', error);
-      alert('Analiz sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+      console.error('Analysis error details:', error);
+      
+      let userMessage = 'Analiz sırasında bir hata oluştu.';
+      
+      if (error.message.includes('fetch')) {
+        userMessage = 'Sunucuya bağlanamadı. İnternet bağlantınızı kontrol edin.';
+      } else if (error.message.includes('404')) {
+        userMessage = 'AI servisi bulunamadı. Backend çalışıyor mu kontrol edin.';
+      } else if (error.message.includes('500')) {
+        userMessage = 'Sunucu hatası. Ollama servisi çalışıyor mu kontrol edin.';
+      } else if (error.message.includes('Ollama')) {
+        userMessage = 'Ollama AI servisi ile bağlantı kurulamadı. Ollama çalışıyor mu kontrol edin.';
+      } else {
+        userMessage = `Hata: ${error.message}`;
+      }
+      
+     
+      const useDemo = window.confirm(
+        `${userMessage}\n\nDemo modu ile devam etmek ister misiniz?`
+      );
+      
+      if (useDemo) {
+       
+        const demoResult = {
+          productName: 'Demo Ürün',
+          category: 'Elektronik',
+          subcategory: 'Elektronik',
+          brand: 'Demo Marka',
+          model: 'Demo Model',
+          year: new Date().getFullYear().toString(),
+          confidence: 85.5,
+          estimatedPrice: 299.99,
+          priceRange: {
+            min: 254.99,
+            max: 344.99
+          },
+          color: 'Siyah',
+          colorCode: '#000000',
+          features: ['Demo Özellik 1', 'Demo Özellik 2'],
+          description: 'Demo modunda analiz edilmiş ürün',
+          specifications: {
+            processor: 'Demo İşlemci',
+            memory: '8GB',
+            storage: '256GB'
+          },
+          aiInsights: [
+            'Demo modunda çalışıyor',
+            'Gerçek analiz için Ollama gerekli',
+            'Backend bağlantısını kontrol edin'
+          ],
+          marketAnalysis: {
+            demand: 'Orta',
+            competition: 'Orta',
+            profitMargin: '20%',
+            turnoverRate: '6x/yıl',
+            customerRating: 4.0,
+            returnRate: '3%'
+          },
+          similarProducts: [
+            { name: 'Demo Ürün 1', similarity: 85, price: 269.99 },
+            { name: 'Demo Ürün 2', similarity: 78, price: 329.99 }
+          ],
+          suggestedCategories: ['Elektronik'],
+          keywordTags: ['demo', 'test', 'ürün'],
+          barcodeSuggestion: null,
+          processingTime: 2.5,
+          analysisDate: new Date().toISOString(),
+          aiModel: 'Demo Mode'
+        };
+        
+        setAnalysisResult(demoResult);
+      }
+      
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  // Renk analizi
+  const analyzeColors = async () => {
+    if (!selectedImage) {
+      alert('Lütfen önce bir görsel seçin.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/AI/color-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64: selectedImage.base64
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`Renk analizi tamamlandı! Dominant renk: ${result.data.primaryColor}`);
+        console.log('Color analysis result:', result.data);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Color analysis error:', error);
+      alert(`Renk analizi hatası: ${error.message}`);
     }
   };
 
@@ -250,22 +458,86 @@ const AdminProductRecognition = () => {
     }
   };
 
-  const saveToProducts = () => {
-    if (analysisResult) {
-      
+  const saveToProducts = async () => {
+    if (!analysisResult) {
+      alert('Kaydetmek için önce bir analiz yapın.');
+      return;
+    }
+
+    if (!user || !user.companyId) {
+      alert('Kullanıcı bilgileri bulunamadı. Lütfen tekrar giriş yapın.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+   
+      const categoryId = categories.find(cat => 
+        cat.name.toLowerCase() === analysisResult.category.toLowerCase()
+      )?.id || categories[0]?.id || 1;
+
+     
       const productData = {
+        companyId: user.companyId,
         name: analysisResult.productName,
-        category: analysisResult.category,
-        brand: analysisResult.brand,
-        price: analysisResult.estimatedPrice,
-        description: analysisResult.description,
-        specifications: analysisResult.specifications,
-        image: selectedImage.preview 
+        description: analysisResult.description || `AI ile tanımlanan ${analysisResult.productName}`,
+        categoryId: categoryId,
+        brand: analysisResult.brand || 'Bilinmeyen',
+        model: analysisResult.model || '',
+        color: analysisResult.color || '',
+        price: analysisResult.estimatedPrice || 0,
+        costPrice: analysisResult.estimatedPrice ? (analysisResult.estimatedPrice * 0.7) : 0, 
+        currentStock: 1, 
+        minimumStock: 1, 
+        barcode: analysisResult.barcodeSuggestion || '',
+        imageUrl: selectedImage.preview 
       };
+
+      console.log('Saving product to database:', productData);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`${analysisResult.productName} başarıyla ürün veritabanına eklendi!`);
+        
+        
+        const goToProduct = window.confirm('Ürün başarıyla eklendi! Ürün listesine gitmek ister misiniz?');
+        if (goToProduct) {
+          navigate('/admin/products');
+        } else {
+          
+          setAnalysisResult(null);
+          setSelectedImage(null);
+        }
+      } else {
+        console.error('API Error Details:', result);
+        
+        if (result.errors) {
+          const errorMessages = Object.entries(result.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join('\n');
+          alert(`Doğrulama hataları:\n${errorMessages}`);
+        } else {
+          alert(result.message || 'Ürün kaydedilirken hata oluştu!');
+        }
+      }
       
-      console.log('Saving product:', productData);
-      alert(`${analysisResult.productName} ürün veritabanına ekleniyor...`);
-      
+    } catch (error) {
+      console.error('Save product error:', error);
+      alert('Ürün kaydedilirken bir hata oluştu: ' + error.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -274,7 +546,14 @@ const AdminProductRecognition = () => {
       const report = {
         analysisDate: new Date().toLocaleString('tr-TR'),
         product: analysisResult,
-        image: selectedImage.name
+        image: selectedImage.name,
+        aiModel: analysisResult.aiModel,
+        processingTime: analysisResult.processingTime,
+        confidence: analysisResult.confidence,
+        user: {
+          companyId: user.companyId,
+          userId: user.id
+        }
       };
       
       const dataStr = JSON.stringify(report, null, 2);
@@ -283,7 +562,7 @@ const AdminProductRecognition = () => {
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `product-analysis-${Date.now()}.json`;
+      link.download = `ai-product-analysis-${Date.now()}.json`;
       link.click();
       
       URL.revokeObjectURL(url);
@@ -313,8 +592,33 @@ const AdminProductRecognition = () => {
     <div className="dashboard-content">
       {/* Page Header */}
       <div className="mb-4">
-        <h1 className="text-dark fw-bold mb-1">AI Ürün Tanıma</h1>
-        <p className="text-gray mb-0">Görsel yükleyerek ürünleri otomatik olarak tanımlayın ve analiz edin</p>
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
+            <h1 className="text-dark fw-bold mb-1">AI Ürün Tanıma</h1>
+            <p className="text-gray mb-0">Görsel yükleyerek ürünleri otomatik olarak tanımlayın ve analiz edin</p>
+          </div>
+          
+          {/* Ollama Status */}
+          <div className="d-flex align-items-center gap-3">
+            <div className={`d-flex align-items-center px-3 py-2 rounded ${ollamaStatus.connected ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+              <div className={`rounded-circle me-2 ${ollamaStatus.connected ? 'bg-success' : 'bg-danger'}`} style={{width: '8px', height: '8px'}}></div>
+              <span className="small fw-medium">
+                {ollamaStatus.connected ? 'Ollama Bağlı' : 'Ollama Bağlı Değil'}
+              </span>
+            </div>
+            {ollamaStatus.models.length > 0 && (
+              <div className="text-gray small">
+                {ollamaStatus.models.length} model yüklü
+              </div>
+            )}
+            <button 
+              onClick={checkOllamaStatus}
+              className="btn btn-sm btn-outline-main"
+            >
+              Durumu Kontrol Et
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="row">
@@ -407,7 +711,7 @@ const AdminProductRecognition = () => {
                     <button 
                       className="btn btn-main btn-lg me-3"
                       onClick={analyzeImage}
-                      disabled={isAnalyzing}
+                      disabled={isAnalyzing || !ollamaStatus.connected}
                     >
                       {isAnalyzing ? (
                         <>
@@ -421,6 +725,16 @@ const AdminProductRecognition = () => {
                         </>
                       )}
                     </button>
+                    
+                    <button 
+                      className="btn btn-outline-main me-3"
+                      onClick={analyzeColors}
+                      disabled={isAnalyzing || !ollamaStatus.connected}
+                    >
+                      <i className="fas fa-palette me-2"></i>
+                      Renk Analizi
+                    </button>
+                    
                     {analysisResult && (
                       <button 
                         className="btn btn-outline-main"
@@ -560,24 +874,6 @@ const AdminProductRecognition = () => {
                       <div className="row g-2">
                         <div className="col-6">
                           <div className="text-center p-2" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-xs)' }}>
-                            <div className="text-main fw-bold">{analysisResult.marketAnalysis.demand}</div>
-                            <small className="text-gray">Talep</small>
-                          </div>
-                        </div>
-                        <div className="col-6">
-                          <div className="text-center p-2" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-xs)' }}>
-                            <div className="text-warning fw-bold">{analysisResult.marketAnalysis.profitMargin}</div>
-                            <small className="text-gray">Kar Marjı</small>
-                          </div>
-                        </div>
-                        <div className="col-6">
-                          <div className="text-center p-2" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-xs)' }}>
-                            <div className="text-success fw-bold">{analysisResult.marketAnalysis.customerRating}</div>
-                            <small className="text-gray">Müşteri Puanı</small>
-                          </div>
-                        </div>
-                        <div className="col-6">
-                          <div className="text-center p-2" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-xs)' }}>
                             <div className="text-info fw-bold">{analysisResult.marketAnalysis.turnoverRate}</div>
                             <small className="text-gray">Devir Hızı</small>
                           </div>
@@ -629,9 +925,19 @@ const AdminProductRecognition = () => {
                   <button 
                     className="btn btn-main"
                     onClick={saveToProducts}
+                    disabled={isSaving}
                   >
-                    <i className="fas fa-save me-2"></i>
-                    Ürün Olarak Kaydet
+                    {isSaving ? (
+                      <>
+                        <div className="loading-spinner me-2"></div>
+                        Kaydediliyor...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-save me-2"></i>
+                        Ürün Olarak Kaydet
+                      </>
+                    )}
                   </button>
                   <button 
                     className="btn btn-outline-main"
@@ -640,7 +946,10 @@ const AdminProductRecognition = () => {
                     <i className="fas fa-download me-2"></i>
                     Raporu İndir
                   </button>
-                  <button className="btn btn-outline-main">
+                  <button 
+                    className="btn btn-outline-main"
+                    onClick={() => navigate('/admin/add-product')}
+                  >
                     <i className="fas fa-edit me-2"></i>
                     Düzenle
                   </button>
@@ -675,7 +984,7 @@ const AdminProductRecognition = () => {
                   </div>
                   <div className="step processing mb-2">
                     <div className="loading-spinner me-2"></div>
-                    Ürün tanıma algoritması çalışıyor
+                    Ollama AI modeli çalışıyor
                   </div>
                   <div className="step pending mb-2">
                     <i className="fas fa-clock text-gray me-2"></i>
@@ -687,7 +996,7 @@ const AdminProductRecognition = () => {
                   </div>
                   <div className="step pending">
                     <i className="fas fa-clock text-gray me-2"></i>
-                    Pazar analizi yapılıyor
+                    AI öngörüleri oluşturuluyor
                   </div>
                 </div>
 
@@ -698,7 +1007,7 @@ const AdminProductRecognition = () => {
                   ></div>
                 </div>
                 <div className="text-center mt-2">
-                  <small className="text-gray">Tahmini süre: 30 saniye</small>
+                  <small className="text-gray">AI analizi devam ediyor...</small>
                 </div>
               </div>
             </div>
@@ -707,6 +1016,42 @@ const AdminProductRecognition = () => {
 
         {/* Sidebar - Tips & History */}
         <div className="col-lg-4">
+          {/* Statistics */}
+          <div className="dashboard-card mb-4">
+            <div className="card-header">
+              <h5 className="card-title">
+                <i className="fas fa-chart-bar me-2"></i>
+                İstatistikler
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="stat-item mb-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-gray">Toplam Analiz</span>
+                  <span className="text-main fw-bold">{statistics.totalAnalyses}</span>
+                </div>
+              </div>
+              <div className="stat-item mb-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-gray">Bugün</span>
+                  <span className="text-success fw-bold">{statistics.todayAnalyses}</span>
+                </div>
+              </div>
+              <div className="stat-item mb-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-gray">Başarılı</span>
+                  <span className="text-info fw-bold">{statistics.successfulAnalyses}</span>
+                </div>
+              </div>
+              <div className="stat-item">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-gray">Ortalama Güven</span>
+                  <span className="text-warning fw-bold">%{statistics.averageConfidence.toFixed(1)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Analysis Tips */}
           <div className="dashboard-card mb-4">
             <div className="card-header">
@@ -747,52 +1092,12 @@ const AdminProductRecognition = () => {
               <div className="alert alert-warning">
                 <i className="fas fa-exclamation-triangle alert-icon"></i>
                 <div>
-                  <strong>Dikkat:</strong>
-                  <p className="mb-0 mt-2">
-                    AI tahminleri %100 doğru olmayabilir. Sonuçları kontrol edin ve gerekirse düzenleyin.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="dashboard-card mb-4">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-chart-bar me-2"></i>
-                Analiz İstatistikleri
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="stat-item mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-gray">Bu Ay Toplam</span>
-                  <span className="text-main fw-bold">156</span>
-                </div>
-              </div>
-              <div className="stat-item mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-gray">Başarı Oranı</span>
-                  <span className="text-success fw-bold">%94.2</span>
-                </div>
-              </div>
-              <div className="stat-item mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-gray">Ortalama Güven</span>
-                  <span className="text-warning fw-bold">%87.8</span>
-                </div>
-              </div>
-              <div className="stat-item mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-gray">Ortalama Süre</span>
-                  <span className="text-info fw-bold">2.3s</span>
-                </div>
-              </div>
-              <div className="stat-item">
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="text-gray">Tasarruf</span>
-                  <span className="text-danger fw-bold">2.5 saat</span>
+                  <strong>Ollama Gereksinimleri:</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>LLaVA modeli önerilir</li>
+                    <li>En az 8GB RAM</li>
+                    <li>Port 11434 açık olmalı</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -807,40 +1112,48 @@ const AdminProductRecognition = () => {
               </h5>
             </div>
             <div className="card-body">
-              {analysisHistory.map((item) => (
-                <div key={item.id} className="analysis-history-item mb-3 p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)', cursor: 'pointer' }}>
-                  <div className="d-flex gap-3">
-                    <img 
-                      src={item.image} 
-                      alt="Analysis"
-                      style={{
-                        width: '60px',
-                        height: '60px',
-                        objectFit: 'cover',
-                        borderRadius: 'var(--border-radius-xs)'
-                      }}
-                    />
-                    <div className="flex-grow-1">
-                      <h6 className="text-dark fw-bold mb-1">{item.result.productName}</h6>
-                      <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="badge badge-success">%{item.result.confidence}</span>
-                        <small className="text-gray">{item.date}</small>
-                      </div>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-gray">{formatCurrency(item.result.estimatedPrice)}</small>
-                        <span className="badge badge-outline badge-main">{item.result.brand}</span>
+              {analysisHistory.length > 0 ? (
+                <>
+                  {analysisHistory.slice(0, 5).map((item) => (
+                    <div key={item.id} className="analysis-history-item mb-3 p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)', cursor: 'pointer' }}>
+                      <div className="d-flex gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="bg-main bg-opacity-10 rounded d-flex align-items-center justify-content-center" style={{width: '50px', height: '50px'}}>
+                            <i className="fas fa-cube text-main"></i>
+                          </div>
+                        </div>
+                        <div className="flex-grow-1">
+                          <h6 className="text-dark fw-bold mb-1">{item.detectedName || 'AI Analizi'}</h6>
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="badge badge-success">%{item.confidence?.toFixed(1) || '0'}</span>
+                            <small className="text-gray">
+                              {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                            </small>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-gray">{item.detectedBrand || 'Bilinmeyen'}</small>
+                            <span className="badge badge-outline badge-main">{item.detectedCategory || 'Genel'}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                  <div className="text-center mt-3">
+                    <button 
+                      className="btn btn-outline-main btn-sm"
+                      onClick={() => window.open(`${API_BASE_URL}/AI/analyses`, '_blank')}
+                    >
+                      <i className="fas fa-eye me-1"></i>
+                      Tümünü Görüntüle
+                    </button>
                   </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <i className="fas fa-history text-gray mb-2" style={{fontSize: '2rem'}}></i>
+                  <p className="text-gray mb-0">Henüz analiz geçmişi yok</p>
                 </div>
-              ))}
-              
-              <div className="text-center mt-3">
-                <button className="btn btn-outline-main btn-sm">
-                  <i className="fas fa-eye me-1"></i>
-                  Tümünü Görüntüle
-                </button>
-              </div>
+              )}
             </div>
           </div>
 
@@ -853,21 +1166,33 @@ const AdminProductRecognition = () => {
               </h5>
             </div>
             <div className="card-body">
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-plus me-2"></i>
-                Toplu Analiz
+              <button 
+                className="btn btn-outline-main w-100 mb-2"
+                onClick={() => navigate('/admin/products')}
+              >
+                <i className="fas fa-list me-2"></i>
+                Ürün Listesi
               </button>
-              <button className="btn btn-outline-main w-100 mb-2">
+              <button 
+                className="btn btn-outline-main w-100 mb-2"
+                onClick={() => navigate('/admin/add-product')}
+              >
+                <i className="fas fa-plus me-2"></i>
+                Manuel Ürün Ekle
+              </button>
+              <button 
+                className="btn btn-outline-main w-100 mb-2"
+                onClick={checkOllamaStatus}
+              >
                 <i className="fas fa-cogs me-2"></i>
                 Model Ayarları
               </button>
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-download me-2"></i>
-                Geçmiş İndir
-              </button>
-              <button className="btn btn-outline-main w-100">
-                <i className="fas fa-question-circle me-2"></i>
-                Yardım & Destek
+              <button 
+                className="btn btn-outline-main w-100"
+                onClick={loadStatistics}
+              >
+                <i className="fas fa-sync me-2"></i>
+                İstatistikleri Yenile
               </button>
             </div>
           </div>
@@ -912,7 +1237,11 @@ const AdminProductRecognition = () => {
                       <i className="fas fa-search-plus text-success mb-2" style={{ fontSize: '24px' }}></i>
                       <h6 className="text-dark fw-bold">Detaylı Analiz</h6>
                       <small className="text-gray">Gelişmiş özellik çıkarımı</small>
-                      <button className="btn btn-sm btn-outline-main mt-2 w-100">
+                      <button 
+                        className="btn btn-sm btn-outline-main mt-2 w-100"
+                        onClick={analyzeColors}
+                        disabled={!selectedImage || isAnalyzing}
+                      >
                         Başlat
                       </button>
                     </div>
@@ -934,41 +1263,18 @@ const AdminProductRecognition = () => {
         </div>
       )}
 
-      {/* Help & Support Modal */}
-      <div className="modal fade" id="helpModal" tabIndex="-1">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">
-                <i className="fas fa-question-circle me-2"></i>
-                AI Ürün Tanıma Yardımı
-              </h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div className="modal-body">
-              <div className="row">
-                <div className="col-md-6">
-                  <h6 className="fw-bold">Nasıl Kullanılır?</h6>
-                  <ol>
-                    <li>Ürün görselini yükleyin</li>
-                    <li>"AI ile Analiz Et" butonuna tıklayın</li>
-                    <li>Sonuçları inceleyin</li>
-                    <li>Gerekirse düzenleyip kaydedin</li>
-                  </ol>
-                </div>
-                <div className="col-md-6">
-                  <h6 className="fw-bold">Sık Sorulan Sorular</h6>
-                  <p><strong>S:</strong> Hangi formatlar desteklenir?<br />
-                  <strong>C:</strong> JPG, PNG, GIF formatları.</p>
-                  
-                  <p><strong>S:</strong> Maksimum dosya boyutu?<br />
-                  <strong>C:</strong> 10 MB'a kadar dosya yükleyebilirsiniz.</p>
-                </div>
-              </div>
+      {/* Ollama Connection Warning */}
+      {!ollamaStatus.connected && (
+        <div className="position-fixed" style={{ bottom: '20px', right: '20px', zIndex: 1050 }}>
+          <div className="alert alert-danger shadow d-flex align-items-center" style={{ maxWidth: '300px' }}>
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            <div>
+              <div className="fw-bold">Ollama Bağlantısı Yok</div>
+              <small>AI analizi için Ollama gerekli</small>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

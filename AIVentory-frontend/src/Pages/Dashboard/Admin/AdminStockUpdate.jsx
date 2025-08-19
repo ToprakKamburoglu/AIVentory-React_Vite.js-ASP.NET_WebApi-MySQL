@@ -1,86 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
 
 const AdminStockUpdate = () => {
-  const [products] = useState([
-    { 
-      id: 1, 
-      name: 'iPhone 15 Pro', 
-      category: 'Telefon', 
-      currentStock: 3, 
-      minStock: 5,
-      barcode: '1234567890123',
-      price: 45000
-    },
-    { 
-      id: 2, 
-      name: 'Samsung Galaxy S24', 
-      category: 'Telefon', 
-      currentStock: 12, 
-      minStock: 10,
-      barcode: '1234567890124',
-      price: 35000
-    },
-    { 
-      id: 3, 
-      name: 'AirPods Pro', 
-      category: 'Kulaklık', 
-      currentStock: 0, 
-      minStock: 8,
-      barcode: '1234567890125',
-      price: 7000
-    },
-    { 
-      id: 4, 
-      name: 'MacBook Air M2', 
-      category: 'Bilgisayar', 
-      currentStock: 1, 
-      minStock: 2,
-      barcode: '1234567890126',
-      price: 32000
-    },
-    { 
-      id: 5, 
-      name: 'PowerBank 20000mAh', 
-      category: 'Powerbank', 
-      currentStock: 8, 
-      minStock: 5,
-      barcode: '1234567890127',
-      price: 300
-    },
-    { 
-      id: 6, 
-      name: 'iPhone Kılıfı Şeffaf', 
-      category: 'Kılıf', 
-      currentStock: 45, 
-      minStock: 20,
-      barcode: '1234567890128',
-      price: 150
-    },
-    { 
-      id: 7, 
-      name: 'Samsung Şarj Aleti', 
-      category: 'Şarj Aleti', 
-      currentStock: 15, 
-      minStock: 10,
-      barcode: '1234567890129',
-      price: 250
-    },
-    { 
-      id: 8, 
-      name: 'Apple Watch Series 9', 
-      category: 'Saat', 
-      currentStock: 2, 
-      minStock: 3,
-      barcode: '1234567890130',
-      price: 12000
-    }
-  ]);
+  const { user } = useAuth();
+  
 
+  const [stockData, setStockData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [updateMode, setUpdateMode] = useState('single'); 
+  const [updateMode, setUpdateMode] = useState('single');
   const [stockUpdates, setStockUpdates] = useState({});
+  const [reservedUpdates, setReservedUpdates] = useState({});
+  const [minimumUpdates, setMinimumUpdates] = useState({});
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [bulkOperation, setBulkOperation] = useState('add');
   const [bulkAmount, setBulkAmount] = useState('');
@@ -88,19 +22,404 @@ const AdminStockUpdate = () => {
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
 
-  const categories = ['Telefon', 'Bilgisayar', 'Kulaklık', 'Powerbank', 'Kılıf', 'Şarj Aleti', 'Saat'];
 
-  const filteredProducts = products.filter(product => {
-    if (selectedCategory !== 'all' && product.category !== selectedCategory) return false;
-    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !product.barcode.includes(searchTerm)) return false;
-    return true;
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 6;
+
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+
+  useEffect(() => {
+    if (user && user.companyId) {
+      loadStockData(1);
+    }
+  }, [user]);
+
+  const loadStockData = async (page = 1) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!user || !user.companyId) {
+        setError('Kullanıcı şirket bilgisi bulunamadı');
+        return;
+      }
+      
+      let url = `${API_BASE_URL}/stock?page=${page}&pageSize=${pageSize}&companyId=${user.companyId}`;
+      
+      if (searchTerm) {
+        url += `&search=${encodeURIComponent(searchTerm)}`;
+      }
+      
+      if (selectedCategory !== 'all') {
+        url += `&category=${encodeURIComponent(selectedCategory)}`;
+      }
+      
+      console.log('Stock API URL:', url);
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      
+      console.log('Stock API Response:', result);
+      
+      if (result.success) {
+        const stockItems = Array.isArray(result.data.data) ? result.data.data : 
+                           Array.isArray(result.data) ? result.data : [];
+        
+        const formattedStockData = stockItems.map(item => ({
+          id: item.id,
+          productName: item.productName,
+          category: item.category,
+          brand: item.brand || '',
+          barcode: item.barcode || '',
+          currentStock: item.currentStock || 0,
+          minimumStock: item.minimumStock || 0,
+          price: item.price || 0,
+          reservedStock: item.reservedStock || 0,
+          availableStock: item.availableStock || 0,
+          stockStatus: item.stockStatus || 'in_stock',
+          lastStockUpdate: item.lastStockUpdate ? new Date(item.lastStockUpdate).toLocaleDateString('tr-TR') : '',
+          companyId: item.companyId
+        }));
+        
+        setStockData(formattedStockData);
+        
+        if (result.data && result.data.pagination) {
+          setCurrentPage(result.data.pagination.currentPage);
+          setTotalPages(result.data.pagination.totalPages);
+          setTotalItems(result.data.pagination.totalItems);
+        } else {
+          setTotalItems(formattedStockData.length);
+        }
+        
+      } else {
+        setError(result.message || 'Stok verileri yüklenirken hata oluştu');
+      }
+    } catch (err) {
+      console.error('Stock API Error:', err);
+      setError('Sunucuya bağlanırken hata oluştu. Backend server çalışıyor mu?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ 
+  const handleCurrentStockUpdate = async (productId, newCurrentStock) => {
+    const stockItem = stockData.find(item => item.id === productId);
+    
+    if (newCurrentStock === stockItem.currentStock) {
+      alert('Current stock değerinde değişiklik yok');
+      return;
+    }
+    
+    try {
+      const requestData = {
+        productId: productId,
+        newCurrentStock: newCurrentStock,
+        companyId: user.companyId,
+        reason: 'Manuel current stock güncelleme'
+      };
+
+      console.log('Current stock update data:', requestData);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/stock/update-current-stock`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`${stockItem.productName} current stoğu başarıyla güncellendi`);
+        
+        setStockUpdates(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+
+        await loadStockData(currentPage);
+      } else {
+        alert(result.message || 'Current stock güncellenirken hata oluştu');
+      }
+    } catch (err) {
+      console.error('Current stock update error:', err);
+      alert('Current stock güncellenirken hata oluştu: ' + err.message);
+    }
+  };
+
+  
+  const handleReservedStockUpdate = async (productId, newReservedStock) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/stock/update-reserved`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: productId,
+          newReservedStock: newReservedStock,
+          companyId: user.companyId
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        const stockItem = stockData.find(item => item.id === productId);
+        alert(`${stockItem.productName} rezerve stoğu güncellendi`);
+        
+        setReservedUpdates(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+
+        await loadStockData(currentPage);
+      } else {
+        alert(result.message || 'Rezerve stok güncellenirken hata oluştu');
+      }
+    } catch (err) {
+      console.error('Reserved stock update error:', err);
+      alert('Rezerve stok güncellenirken hata oluştu: ' + err.message);
+    }
+  };
+
+
+  const handleMinimumStockUpdate = async (productId, newMinimumStock) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/stock/update-minimum-stock`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: productId,
+          newMinimumStock: newMinimumStock,
+          companyId: user.companyId
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        const stockItem = stockData.find(item => item.id === productId);
+        alert(`${stockItem.productName} minimum stoğu güncellendi`);
+        
+        setMinimumUpdates(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+
+        await loadStockData(currentPage);
+      } else {
+        alert(result.message || 'Minimum stok güncellenirken hata oluştu');
+      }
+    } catch (err) {
+      console.error('Minimum stock update error:', err);
+      alert('Minimum stok güncellenirken hata oluştu: ' + err.message);
+    }
+  };
+
+ 
+  const handleBulkUpdate = async () => {
+    if (selectedProducts.length === 0 || !bulkAmount || !updateReason) {
+      alert('Lütfen ürün seçin, miktar girin ve sebep belirtin');
+      return;
+    }
+
+    try {
+      const amount = parseInt(bulkAmount);
+      const updates = [];
+
+      for (const productId of selectedProducts) {
+        const stockItem = stockData.find(item => item.id === productId);
+        
+       
+        let newCurrentStock;
+        switch (bulkOperation) {
+          case 'add':
+            newCurrentStock = stockItem.currentStock + amount;
+            break;
+          case 'subtract':
+            newCurrentStock = Math.max(0, stockItem.currentStock - amount); 
+            break;
+          case 'set':
+            newCurrentStock = amount;
+            break;
+          default:
+            continue;
+        }
+
+        updates.push({
+          productId: productId,
+          newCurrentStock: newCurrentStock,
+          companyId: user.companyId,
+          reason: updateReason
+        });
+      }
+
+      let successCount = 0;
+      for (const update of updates) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${API_BASE_URL}/stock/update-current-stock`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(update)
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Bulk update item error:', err);
+        }
+      }
+
+      if (successCount > 0) {
+        alert(`${successCount} ürünün stoğu başarıyla güncellendi`);
+        
+        setSelectedProducts([]);
+        setBulkAmount('');
+        setUpdateReason('');
+        
+        await loadStockData(currentPage);
+      } else {
+        alert('Hiçbir ürünün stoğu güncellenemedi');
+      }
+    } catch (err) {
+      console.error('Bulk update error:', err);
+      alert('Toplu güncelleme sırasında hata oluştu: ' + err.message);
+    }
+  };
+
+ 
+  const handleBarcodeSearch = async () => {
+    if (!barcodeInput.trim()) {
+      alert('Lütfen barkod girin');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/products/barcode/${barcodeInput.trim()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const product = result.data;
+        
+        const existingStockItem = stockData.find(item => item.id === product.id);
+        if (existingStockItem) {
+          const productElement = document.getElementById(`stock-${product.id}`);
+          if (productElement) {
+            productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            productElement.classList.add('highlight');
+            setTimeout(() => productElement.classList.remove('highlight'), 2000);
+          }
+        } else {
+          alert(`Ürün bulundu: ${product.name}\nAncak bu stok sayfasında görünmüyor. Arama yaparak bulabilirsiniz.`);
+        }
+
+        setShowBarcodeModal(false);
+        setBarcodeInput('');
+      } else {
+        alert('Barkod bulunamadı');
+      }
+    } catch (err) {
+      console.error('Barcode search error:', err);
+      alert('Barkod arama sırasında hata oluştu');
+    }
+  };
+
+
+  const getStockStatusColor = (stockStatus) => {
+    switch (stockStatus) {
+      case 'out_of_stock': return 'danger';
+      case 'low_stock': return 'warning';
+      case 'critical': return 'warning';
+      case 'in_stock': return 'success';
+      default: return 'secondary';
+    }
+  };
+
+  const getStockStatusText = (stockStatus) => {
+    switch (stockStatus) {
+      case 'out_of_stock': return 'Tükendi';
+      case 'low_stock': return 'Düşük';
+      case 'critical': return 'Kritik';
+      case 'in_stock': return 'Normal';
+      default: return 'Bilinmiyor';
+    }
+  };
+
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    loadStockData(1);
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setCurrentPage(1);
+    loadStockData(1);
+  };
 
   const handleStockChange = (productId, newStock) => {
     setStockUpdates(prev => ({
       ...prev,
       [productId]: parseInt(newStock) || 0
+    }));
+  };
+
+  const handleReservedChange = (productId, newReserved) => {
+    setReservedUpdates(prev => ({
+      ...prev,
+      [productId]: parseInt(newReserved) || 0
+    }));
+  };
+
+  const handleMinimumChange = (productId, newMinimum) => {
+    setMinimumUpdates(prev => ({
+      ...prev,
+      [productId]: parseInt(newMinimum) || 0
     }));
   };
 
@@ -113,219 +432,238 @@ const AdminStockUpdate = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedProducts.length === filteredProducts.length) {
+    if (selectedProducts.length === stockData.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts(stockData.map(item => item.id));
     }
   };
 
-  const handleSingleUpdate = (productId) => {
-    const newStock = stockUpdates[productId];
-    const product = products.find(p => p.id === productId);
-    
-    if (newStock !== undefined && newStock !== product.currentStock) {
-      const movement = {
-        productId,
-        productName: product.name,
-        oldStock: product.currentStock,
-        newStock: newStock,
-        difference: newStock - product.currentStock,
-        type: newStock > product.currentStock ? 'in' : 'out',
-        reason: 'Manuel güncelleme',
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log('Single update:', movement);
-      
-      alert(`${product.name} stoğu ${product.currentStock}'den ${newStock}'e güncellendi`);
-      
-      setStockUpdates(prev => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
-    }
+  const handleRefresh = () => {
+    loadStockData(currentPage);
   };
 
-  const handleBulkUpdate = () => {
-    if (selectedProducts.length === 0 || !bulkAmount || !updateReason) {
-      alert('Lütfen ürün seçin, miktar girin ve sebep belirtin');
-      return;
-    }
+  const categories = ['Elektronik', 'Gıda', 'Giyim', 'Kozmetik', 'Ev & Yaşam'];
 
-    const amount = parseInt(bulkAmount);
-    const updates = selectedProducts.map(productId => {
-      const product = products.find(p => p.id === productId);
-      let newStock;
-      
-      switch (bulkOperation) {
-        case 'add':
-          newStock = product.currentStock + amount;
-          break;
-        case 'subtract':
-          newStock = Math.max(0, product.currentStock - amount);
-          break;
-        case 'set':
-          newStock = amount;
-          break;
-        default:
-          newStock = product.currentStock;
-      }
-
-      return {
-        productId,
-        productName: product.name,
-        oldStock: product.currentStock,
-        newStock,
-        difference: newStock - product.currentStock,
-        type: newStock > product.currentStock ? 'in' : newStock < product.currentStock ? 'out' : 'adjustment',
-        reason: updateReason,
-        timestamp: new Date().toISOString()
-      };
-    });
-
-    console.log('Bulk update:', updates);
   
-    alert(`${selectedProducts.length} ürünün stoğu güncellendi`);
-    
-    setSelectedProducts([]);
-    setBulkAmount('');
-    setUpdateReason('');
+  const PaginationComponent = () => {
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxPagesToShow = 5;
+      
+      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      return pages;
+    };
+
+    return (
+      <div className="d-flex justify-content-between align-items-center mt-4">
+        <div className="text-muted">
+          Toplam {totalItems} ürünün {Math.min((currentPage - 1) * pageSize + 1, totalItems)}-{Math.min(currentPage * pageSize, totalItems)} arası gösteriliyor
+        </div>
+        
+        <nav>
+          <ul className="pagination mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button 
+                className="page-link" 
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                    loadStockData(currentPage - 1);
+                  }
+                }}
+                disabled={currentPage === 1}
+              >
+                <i className="fas fa-chevron-left"></i>
+              </button>
+            </li>
+            
+            {getPageNumbers().map(pageNum => (
+              <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                <button 
+                  className="page-link" 
+                  onClick={() => {
+                    setCurrentPage(pageNum);
+                    loadStockData(pageNum);
+                  }}
+                >
+                  {pageNum}
+                </button>
+              </li>
+            ))}
+            
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button 
+                className="page-link" 
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                    loadStockData(currentPage + 1);
+                  }
+                }}
+                disabled={currentPage === totalPages}
+              >
+                <i className="fas fa-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    );
   };
 
-  const handleBarcodeUpdate = () => {
-    if (!barcodeInput.trim()) {
-      alert('Lütfen barkod girin');
-      return;
-    }
+ 
+  if (!user) {
+    return (
+      <div className="stock-update-page">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Kullanıcı bilgileri yükleniyor...</span>
+          </div>
+          <p className="mt-3 text-gray">Kullanıcı bilgileri yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
-    const product = products.find(p => p.barcode === barcodeInput.trim());
-    if (!product) {
-      alert('Barkod bulunamadı');
-      return;
-    }
+ 
+  if (loading) {
+    return (
+      <div className="stock-update-page">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+          <p className="mt-3 text-gray">Şirket stok verileri yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
-    const productElement = document.getElementById(`product-${product.id}`);
-    if (productElement) {
-      productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      productElement.classList.add('highlight');
-      setTimeout(() => productElement.classList.remove('highlight'), 2000);
-    }
-
-    setShowBarcodeModal(false);
-    setBarcodeInput('');
-  };
-
-  const getStockStatusColor = (current, min) => {
-    if (current === 0) return 'danger';
-    if (current <= min) return 'warning';
-    return 'success';
-  };
-
-  const getStockStatusText = (current, min) => {
-    if (current === 0) return 'Tükendi';
-    if (current <= min) return 'Düşük';
-    return 'Normal';
-  };
-
-  const getTotalSelectedValue = () => {
-    return selectedProducts.reduce((total, productId) => {
-      const product = products.find(p => p.id === productId);
-      return total + (product ? product.price * product.currentStock : 0);
-    }, 0);
-  };
+ 
+  if (error) {
+    return (
+      <div className="stock-update-page">
+        <div className="alert alert-danger text-center">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          {error}
+          <div className="mt-3">
+            <button className="btn btn-outline-danger" onClick={handleRefresh}>
+              <i className="fas fa-redo me-2"></i>
+              Tekrar Dene
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="stock-update-page">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 pt-4">
         <div>
           <h1 className="text-main mb-2">
-            <i className="fas fa-edit me-2"></i>
+            <i className="fas fa-edit text-main me-2"></i>
             Stok Güncelleme
           </h1>
           <p className="text-gray mb-0">
-            Ürün stoklarını tek tek veya toplu olarak güncelleyin
+            {user.companyName || 'Şirketinizin'} stok değerlerini güncelleyin • {totalItems} ürün
           </p>
         </div>
         <div className="d-flex gap-2">
-          <Link to="/admin/stock" className="btn btn-outline-main">
+          <button className="btn btn-outline-secondary" onClick={handleRefresh}>
+            <i className="fas fa-sync-alt me-2"></i>
+            Yenile
+          </button>
+          <Link to="/admin/stock" className="btn btn-main">
             <i className="fas fa-warehouse me-2"></i>
             Stok Durumu
-          </Link>
-          <Link to="/admin/stock/movements" className="btn btn-outline-main">
-            <i className="fas fa-history me-2"></i>
-            Hareketler
           </Link>
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stock Statistics */}
       <div className="dashboard-stats">
         <div className="stat-card">
           <div className="stat-header">
-            <div className="stat-title">Toplam Ürün</div>
+            <div className="stat-title">Toplam Current Stock</div>
             <div className="stat-icon">
               <i className="fas fa-cubes"></i>
             </div>
           </div>
-          <div className="stat-value">{products.length}</div>
+          <div className="stat-value">
+            {stockData.reduce((total, item) => total + item.currentStock, 0)}
+          </div>
           <div className="stat-change neutral">
-            <i className="fas fa-list"></i>
-            Güncelleme için hazır
+            <i className="fas fa-boxes"></i>
+            Mevcut stok
           </div>
         </div>
-
-        {updateMode === 'bulk' && (
-          <div className="stat-card">
-            <div className="stat-header">
-              <div className="stat-title">Seçili Ürün</div>
-              <div className="stat-icon">
-                <i className="fas fa-check-square"></i>
-              </div>
-            </div>
-            <div className="stat-value">{selectedProducts.length}</div>
-            <div className="stat-change positive">
-              <i className="fas fa-mouse-pointer"></i>
-              Toplu işlem için
-            </div>
-          </div>
-        )}
 
         <div className="stat-card warning">
           <div className="stat-header">
-            <div className="stat-title">Bekleyen Güncelleme</div>
+            <div className="stat-title">Toplam Reserved Stock</div>
             <div className="stat-icon warning">
-              <i className="fas fa-clock"></i>
+              <i className="fas fa-lock"></i>
             </div>
           </div>
-          <div className="stat-value">{Object.keys(stockUpdates).length}</div>
+          <div className="stat-value">
+            {stockData.reduce((total, item) => total + item.reservedStock, 0)}
+          </div>
           <div className="stat-change neutral">
-            <i className="fas fa-save"></i>
-            Kaydedilmemiş
+            <i className="fas fa-clock"></i>
+            Rezerve stok
           </div>
         </div>
 
-        {updateMode === 'bulk' && selectedProducts.length > 0 && (
-          <div className="stat-card success">
-            <div className="stat-header">
-              <div className="stat-title">Seçili Değer</div>
-              <div className="stat-icon success">
-                <i className="fas fa-dollar-sign"></i>
-              </div>
-            </div>
-            <div className="stat-value">₺{getTotalSelectedValue().toLocaleString()}</div>
-            <div className="stat-change positive">
-              <i className="fas fa-calculator"></i>
-              Toplam değer
+        <div className="stat-card success">
+          <div className="stat-header">
+            <div className="stat-title">Toplam Available Stock</div>
+            <div className="stat-icon success">
+              <i className="fas fa-check-circle"></i>
             </div>
           </div>
-        )}
+          <div className="stat-value">
+            {stockData.reduce((total, item) => total + item.availableStock, 0)}
+          </div>
+          <div className="stat-change positive">
+            <i className="fas fa-arrow-up"></i>
+            Satışa hazır
+          </div>
+        </div>
+
+        <div className="stat-card danger">
+          <div className="stat-header">
+            <div className="stat-title">Kritik Stok</div>
+            <div className="stat-icon danger">
+              <i className="fas fa-exclamation-triangle"></i>
+            </div>
+          </div>
+          <div className="stat-value">
+            {stockData.filter(item => ['out_of_stock', 'low_stock', 'critical'].includes(item.stockStatus)).length}
+          </div>
+          <div className="stat-change negative">
+            <i className="fas fa-arrow-down"></i>
+            Dikkat gerekli
+          </div>
+        </div>
       </div>
 
-      {/* Update Mode Selector */}
-      <div className="dashboard-card mb-4">
+      {/* Filters */}
+      <div className="dashboard-card mb-4 p-3">
         <div className="card-body">
           <div className="row align-items-center">
             <div className="col-md-3">
@@ -364,7 +702,7 @@ const AdminStockUpdate = () => {
               <select 
                 className="form-control form-select"
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={handleCategoryChange}
               >
                 <option value="all">Tüm Kategoriler</option>
                 {categories.map(cat => (
@@ -375,21 +713,27 @@ const AdminStockUpdate = () => {
             
             <div className="col-md-4">
               <label className="form-label">Ürün Ara</label>
-              <div className="header-search">
-                <i className="fas fa-search search-icon"></i>
+              <div className="header-search d-flex">
                 <input
                   type="text"
-                  className="search-input"
-                  placeholder="Ürün adı veya barkod ile ara..."
+                  className="search-input flex-grow-1"
+                  placeholder="Ürün adı, marka veya barkod ile ara..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
                 />
+                <button 
+                  className="btn btn-primary ms-2"
+                  onClick={handleSearch}
+                >
+                  <i className="fas fa-search"></i>
+                </button>
               </div>
             </div>
 
             <div className="col-md-2">
               <label className="form-label">Hızlı İşlemler</label>
-              <button 
+              <button  
                 className="btn btn-secondary w-100"
                 onClick={() => setShowBarcodeModal(true)}
               >
@@ -403,11 +747,11 @@ const AdminStockUpdate = () => {
 
       {/* Bulk Update Panel */}
       {updateMode === 'bulk' && (
-        <div className="dashboard-card mb-4">
-          <div className="card-header">
+        <div className="dashboard-card mb-4 p-3">
+          <div className="card-header pb-3">
             <h5 className="card-title">
               <i className="fas fa-list text-main me-2"></i>
-              Toplu Güncelleme
+              Toplu Stok Güncelleme
               {selectedProducts.length > 0 && (
                 <span className="badge badge-main ms-2">{selectedProducts.length} ürün seçili</span>
               )}
@@ -508,20 +852,16 @@ const AdminStockUpdate = () => {
         </div>
       )}
 
-      {/* Products Table */}
+      {/* Stock Table */}
       <div className="dashboard-card">
         <div className="card-header d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">
-            <i className="fas fa-box text-main me-2"></i>
-            Ürünler ({filteredProducts.length})
-          </h5>
-          {updateMode === 'bulk' && filteredProducts.length > 0 && (
+          {updateMode === 'bulk' && stockData.length > 0 && (
             <button 
               className="btn btn-sm btn-outline-main"
               onClick={handleSelectAll}
             >
               <i className="fas fa-check-square me-1"></i>
-              {selectedProducts.length === filteredProducts.length ? 'Hiçbirini Seçme' : 'Tümünü Seç'}
+              {selectedProducts.length === stockData.length ? 'Hiçbirini Seçme' : 'Tümünü Seç'}
             </button>
           )}
         </div>
@@ -532,91 +872,135 @@ const AdminStockUpdate = () => {
                 <tr>
                   {updateMode === 'bulk' && <th width="50">Seç</th>}
                   <th>Ürün</th>
-                  <th>Kategori</th>
-                  <th>Mevcut Stok</th>
-                  <th>Min. Stok</th>
-                  <th>Durum</th>
-                  <th>Birim Fiyat</th>
-                  {updateMode === 'single' && <th>Yeni Stok</th>}
-                  <th>İşlemler</th>
+                  <th style={{ textAlign: 'center' }}>Kategori</th>
+                  <th style={{ textAlign: 'center' }}>Current Stock</th>
+                  <th style={{ textAlign: 'center' }}>Reserved Stock</th>
+                  <th style={{ textAlign: 'center' }}>Available Stock</th>
+                  <th style={{ textAlign: 'center' }}>Minimum Stock</th>
+                  <th style={{ textAlign: 'center' }}>Durum</th>
+                  <th style={{ textAlign: 'center' }}>Güncelleme Alanları</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map(product => (
-                  <tr key={product.id} id={`product-${product.id}`}>
+                {stockData.map(stockItem => (
+                  <tr key={stockItem.id} id={`stock-${stockItem.id}`}>
                     {updateMode === 'bulk' && (
                       <td>
                         <input
                           type="checkbox"
                           className="form-check-input"
-                          checked={selectedProducts.includes(product.id)}
-                          onChange={() => handleProductSelect(product.id)}
+                          checked={selectedProducts.includes(stockItem.id)}
+                          onChange={() => handleProductSelect(stockItem.id)}
                         />
                       </td>
                     )}
                     <td>
                       <div className="d-flex align-items-center">
-                        <div className="me-3">
-                          <i className="fas fa-box text-main"></i>
-                        </div>
                         <div>
-                          <div className="fw-bold">{product.name}</div>
-                          <small className="text-gray">#{product.barcode}</small>
+                          <div className="fw-bold">{stockItem.productName}</div>
+                          {stockItem.brand && (
+                            <small className="text-gray">Marka: {stockItem.brand}</small>
+                          )}
+                          {stockItem.barcode && (
+                            <small className="text-gray d-block">#{stockItem.barcode}</small>
+                          )}
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span className="badge badge-outline badge-main">{product.category}</span>
+                    <td className="text-center">
+                      <span className="badge badge-outline badge-main">{stockItem.category}</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-primary">{stockItem.currentStock}</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-warning">{stockItem.reservedStock}</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-success">{stockItem.availableStock}</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="fw-bold fs-5 text-secondary">{stockItem.minimumStock}</span>
                     </td>
                     <td>
-                      <span className="fw-bold fs-5">{product.currentStock}</span>
-                    </td>
-                    <td>{product.minStock}</td>
-                    <td>
-                      <span className={`badge badge-${getStockStatusColor(product.currentStock, product.minStock)}`}>
-                        {getStockStatusText(product.currentStock, product.minStock)}
+                      <span className={`badge badge-${getStockStatusColor(stockItem.stockStatus)}`}>
+                        {getStockStatusText(stockItem.stockStatus)}
                       </span>
                     </td>
-                    <td>₺{product.price.toLocaleString()}</td>
-                    {updateMode === 'single' && (
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            style={{ width: '80px' }}
-                            value={stockUpdates[product.id] !== undefined ? stockUpdates[product.id] : ''}
-                            onChange={(e) => handleStockChange(product.id, e.target.value)}
-                            placeholder={product.currentStock.toString()}
-                            min="0"
-                          />
-                          {stockUpdates[product.id] !== undefined && stockUpdates[product.id] !== product.currentStock && (
-                            <span className={`badge badge-sm ${stockUpdates[product.id] > product.currentStock ? 'badge-success' : 'badge-danger'}`}>
-                              {stockUpdates[product.id] > product.currentStock ? '+' : ''}
-                              {stockUpdates[product.id] - product.currentStock}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    )}
                     <td>
-                      <div className="d-flex gap-1">
-                        {updateMode === 'single' && (
-                          <button 
-                            className="btn btn-sm btn-main"
-                            onClick={() => handleSingleUpdate(product.id)}
-                            disabled={stockUpdates[product.id] === undefined || stockUpdates[product.id] === product.currentStock}
-                            title="Stoğu Güncelle"
-                          >
-                            <i className="fas fa-save"></i>
-                          </button>
-                        )}
-                        <button className="btn btn-sm btn-outline-main" title="Geçmiş">
-                          <i className="fas fa-history"></i>
-                        </button>
-                        <button className="btn btn-sm btn-outline-main" title="Detaylar">
-                          <i className="fas fa-info"></i>
-                        </button>
+                      <div className="row g-2 justify-content-end">
+                        {/* Current Stock Güncelleme */}
+                        <div className="col-6">
+                          <label className="form-label small">Yeni Current</label>
+                          <div className="d-flex align-items-center gap-1">
+                            <input
+                              type="number"
+                              className="form-control form-control-sm"
+                              style={{ width: '70px' }}
+                              value={stockUpdates[stockItem.id] !== undefined ? stockUpdates[stockItem.id] : ''}
+                              onChange={(e) => handleStockChange(stockItem.id, e.target.value)}
+                              placeholder={stockItem.currentStock.toString()}
+                              min="0"
+                            />
+                            <button 
+                              className="btn btn-sm btn-primary"
+                              onClick={() => handleCurrentStockUpdate(stockItem.id, stockUpdates[stockItem.id])}
+                              disabled={stockUpdates[stockItem.id] === undefined || stockUpdates[stockItem.id] === stockItem.currentStock}
+                              title="Current Stock Güncelle"
+                            >
+                              <i className="fas fa-save"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Reserved Stock Güncelleme */}
+                        <div className="col-5">
+                          <label className="form-label small">Yeni Reserved</label>
+                          <div className="d-flex align-items-center gap-1">
+                            <input
+                              type="number"
+                              className="form-control form-control-sm"
+                              style={{ width: '70px' }}
+                              value={reservedUpdates[stockItem.id] !== undefined ? reservedUpdates[stockItem.id] : ''}
+                              onChange={(e) => handleReservedChange(stockItem.id, e.target.value)}
+                              placeholder={stockItem.reservedStock.toString()}
+                              min="0"
+                              max={stockItem.currentStock}
+                            />
+                            <button 
+                              className="btn btn-sm btn-warning"
+                              onClick={() => handleReservedStockUpdate(stockItem.id, reservedUpdates[stockItem.id])}
+                              disabled={reservedUpdates[stockItem.id] === undefined || reservedUpdates[stockItem.id] === stockItem.reservedStock}
+                              title="Reserved Stock Güncelle"
+                            >
+                              <i className="fas fa-lock"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Minimum Stock Güncelleme */}
+                        <div className="col-8">
+                          <label className="form-label small">Yeni Minimum</label>
+                          <div className="d-flex align-items-center gap-1">
+                            <input
+                              type="number"
+                              className="form-control form-control-sm"
+                              style={{ width: '70px' }}
+                              value={minimumUpdates[stockItem.id] !== undefined ? minimumUpdates[stockItem.id] : ''}
+                              onChange={(e) => handleMinimumChange(stockItem.id, e.target.value)}
+                              placeholder={stockItem.minimumStock.toString()}
+                              min="0"
+                            />
+                            <button 
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => handleMinimumStockUpdate(stockItem.id, minimumUpdates[stockItem.id])}
+                              disabled={minimumUpdates[stockItem.id] === undefined || minimumUpdates[stockItem.id] === stockItem.minimumStock}
+                              title="Minimum Stock Güncelle"
+                            >
+                              <i className="fas fa-chart-line"></i>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -627,80 +1011,199 @@ const AdminStockUpdate = () => {
         </div>
       </div>
 
-      {filteredProducts.length === 0 && (
+      {/* Pagination */}
+      {!loading && stockData.length > 0 && <PaginationComponent />}
+
+      {/* Empty state */}
+      {stockData.length === 0 && !loading && (
         <div className="text-center py-5">
-          <i className="fas fa-search text-gray fs-1 mb-3"></i>
-          <h5 className="text-gray">Ürün bulunamadı</h5>
-          <p className="text-gray">Arama kriterlerinizi değiştirin</p>
+          <i className="fas fa-warehouse text-gray fs-1 mb-3"></i>
+          <h5 className="text-gray">Stok verisi bulunamadı</h5>
+          <p className="text-gray">Bu şirkette henüz stok takipli ürün yok</p>
+          <Link to="/admin/products/add" className="btn btn-main">
+            <i className="fas fa-plus me-2"></i>
+            İlk Ürünü Ekle
+          </Link>
         </div>
       )}
-
-      {/* Quick Actions */}
+      
+      {/* Quick Actions & Tips - Güzelleştirilmiş */}              
       <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-bolt text-warning me-2"></i>
-                Hızlı İşlemler
+        <div className="col-md-12">
+          <div className="dashboard-card shadow-sm">
+            <div className="card-header fw-bold p-3 rounded-top">
+              <h5 className="card-title mb-0 d-flex align-items-center">
+                <i className="fas fa-bolt text-warning me-3 fs-5"></i>
+                <span className="fw-bold">Hızlı İşlemler</span>
               </h5>
             </div>
-            <div className="card-body">
-              <div className="d-grid gap-2">
-                <button 
-                  className="btn btn-outline-main"
-                  onClick={() => setShowBarcodeModal(true)}
-                >
-                  <i className="fas fa-barcode me-2"></i>
-                  Barkod ile Stok Güncelle
-                </button>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-upload me-2"></i>
-                  Excel'den Toplu Yükle
-                </button>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-camera me-2"></i>
-                  AI ile Stok Sayımı
-                </button>
-                <button className="btn btn-outline-main">
-                  <i className="fas fa-download me-2"></i>
-                  Stok Raporu İndir
-                </button>
+            <div className="card-body p-2">
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <div className="tip-item p-3 border-start border-primary border-4 bg-primary bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
+                      onClick={() => setShowBarcodeModal(true)}
+                      style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-barcode"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-primary mb-1">Barkod ile Ürün Bul</div>
+                      <small className="text-muted">Barkod okutarak hızlıca ürün bulun</small>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-4">
+                  <div className="tip-item p-3 border-start border-success border-4 bg-success bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
+                      style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-upload"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-success mb-1">Excel'den Toplu Yükle</div>
+                      <small className="text-muted">Excel dosyasından toplu stok güncelleme</small>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-4">
+                  <Link 
+                    to="/admin/stock" 
+                    className="tip-item p-3 border-start border-warning border-4 bg-warning bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect text-decoration-none"
+                    style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                  >
+                    <div className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                        style={{width: '40px', height: '40px'}}>
+                      <i className="fas fa-warehouse"></i>
+                    </div>
+                    <div>
+                      <div className="fw-semibold text-warning mb-1">Stok Durumu Raporu</div>
+                      <small className="text-muted">Detaylı stok durumu ve raporlar</small>
+                    </div>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-info-circle text-main me-2"></i>
-                Güncelleme İpuçları
-              </h5>
+      <style>
+      {`
+        .hover-effect:hover {
+          transform: translateY(-2px);
+        }
+        
+        .hover-effect:active {
+          transform: translateY(0);
+        }
+      `}
+      </style>
+
+      {/* Stok Türleri Açıklama Kartı */}
+      <div className="dashboard-card mt-4 p-3">
+        <div className="card-header pb-4">
+          <h5 className="card-title">
+            <i className="fas fa-info-circle text-main me-2"></i>
+            Stok Türleri Rehberi
+          </h5>
+        </div>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-md-3 mb-3">
+              <div className="p-3 bg-primary bg-opacity-10 rounded">
+                <h6 className="text-primary mb-2">
+                  <i className="fas fa-cube me-2"></i>
+                  Current Stock
+                </h6>
+                <small className="text-muted">
+                  Toplam fiziksel stok miktarı. Depoda bulunan gerçek ürün sayısı.
+                </small>
+              </div>
             </div>
-            <div className="card-body">
-              <div className="tips-list">
-                <div className="tip-item mb-3">
-                  <i className="fas fa-lightbulb text-warning me-2"></i>
-                  <small>Toplu güncellemede sebep belirtmek zorunludur</small>
+            <div className="col-md-3 mb-3">
+              <div className="p-3 bg-warning bg-opacity-10 rounded">
+                <h6 className="text-warning mb-2">
+                  <i className="fas fa-lock me-2"></i>
+                  Reserved Stock
+                </h6>
+                <small className="text-muted">
+                  Sipariş verilmiş ancak henüz sevk edilmemiş ürün miktarı.
+                </small>
+              </div>
+            </div>
+            <div className="col-md-3 mb-3">
+              <div className="p-3 bg-success bg-opacity-10 rounded">
+                <h6 className="text-success mb-2">
+                  <i className="fas fa-check-circle me-2"></i>
+                  Available Stock
+                </h6>
+                <small className="text-muted">
+                  Satışa hazır stok = Current Stock - Reserved Stock (otomatik hesaplanır)
+                </small>
+              </div>
+            </div>
+            <div className="col-md-3 mb-3">
+              <div className="p-3 bg-secondary bg-opacity-10 rounded">
+                <h6 className="text-secondary mb-2">
+                  <i className="fas fa-chart-line me-2"></i>
+                  Minimum Stock
+                </h6>
+                <small className="text-muted">
+                  Uyarı seviyesi. Bu seviyenin altına düştüğünde bildirim gelir.
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div className="alert alert-info mt-3">
+            <i className="fas fa-lightbulb me-2"></i>
+            <strong>İpucu:</strong> Her stok türü için ayrı input alanları var. Değiştirmek istediğiniz alana yeni değeri girin ve yanındaki butona basın.
+          </div>
+        </div>
+      </div>
+
+      {/* Güvenlik Bilgisi */}
+      <div className="dashboard-card mt-4 p-3">
+        <div className="card-header"></div>
+        <div className="card-body">
+          <div className="row">
+            <div className="col-md-4">
+              <div className="p-3 bg-primary bg-opacity-10 rounded">
+              <div className="d-flex align-items-center mb-2">
+                <i className="fas fa-building text-primary me-2"></i>
+                <strong className='text-main'>Şirket İzolasyonu</strong>
+              </div>
+              <small className="text-muted">
+                Sadece kendi şirketinizin ({user.companyName || 'N/A'}) ürünlerini inceleyebilir ve gerekli durumlarda güncelleyebilirsiniz.
+              </small>
+            </div>
+            </div>
+            <div className="col-md-4">
+              <div className="p-3 bg-warning bg-opacity-10 rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <i className="fa-solid fa-box-archive text-warning me-2"></i>
+                  <strong className='text-warning'>Stok Güncelleme</strong>
                 </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-shield-alt text-success me-2"></i>
-                  <small>Tüm stok değişiklikleri otomatik olarak kaydedilir</small>
+                <small className="text-muted">
+                  Tüm stok değişiklikleri otomatik olarak kayıt altına alınır, bu kayıtlar güvenli bir şekilde saklanır ve görüntülenebilir.
+                </small>
+              </div>
+            </div>
+            
+            <div className="col-md-4">
+               <div className="p-3 bg-success bg-opacity-10 rounded">
+                <div className="d-flex align-items-center mb-2">
+                  <i className="fas fa-user-shield text-success me-2"></i>
+                  <strong className='text-success'>Kullanıcı Yetkileri</strong>
                 </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-history text-info me-2"></i>
-                  <small>Stok geçmişini "Hareketler" sayfasından görüntüleyebilirsiniz</small>
-                </div>
-                <div className="tip-item mb-3">
-                  <i className="fas fa-bell text-danger me-2"></i>
-                  <small>Minimum stokun altına düşen ürünler otomatik uyarı verir</small>
-                </div>
-                <div className="tip-item">
-                  <i className="fas fa-barcode text-main me-2"></i>
-                  <small>Barkod okutarak hızlı ürün bulabilirsiniz</small>
-                </div>
+                <small className="text-muted">
+                  Sadece yetkilendirildiğiniz stok türlerini güncelleyebilir, diğer stok türlerinde ise yalnızca görüntüleme yapabilirsiniz.
+                </small>
               </div>
             </div>
           </div>
@@ -709,105 +1212,72 @@ const AdminStockUpdate = () => {
 
       {/* Barcode Modal */}
       {showBarcodeModal && (
-        <div className="modal-overlay" onClick={() => setShowBarcodeModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h5 className="modal-title">
-                <i className="fas fa-barcode text-main me-2"></i>
-                Barkod ile Ürün Bul
-              </h5>
-              <button 
-                type="button" 
-                className="modal-close"
-                onClick={() => setShowBarcodeModal(false)}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Barkod Numarası</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={barcodeInput}
-                  onChange={(e) => setBarcodeInput(e.target.value)}
-                  placeholder="Barkod numarasını girin veya okutun"
-                  autoFocus
-                  onKeyPress={(e) => e.key === 'Enter' && handleBarcodeUpdate()}
-                />
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg pt-5">
+            <div className="modal-content ms-auto">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-barcode text-main me-2"></i>
+                  Barkod ile Ürün Bul
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close"
+                  onClick={() => setShowBarcodeModal(false)}
+                ></button>
               </div>
-              <div className="mt-3">
-                <div className="alert alert-info">
-                  <i className="fas fa-info-circle me-2"></i>
-                  <small>
-                    Barkod okutucunuz varsa bu alana doğrudan okutabilirsiniz. 
-                    Manuel olarak da girebilirsiniz.
-                  </small>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Barkod Numarası</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    placeholder="Barkod numarasını girin veya okutun"
+                    autoFocus
+                    onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch()}
+                  />
+                </div>
+                <div className="mt-3">
+                  <div className="alert alert-info">
+                    <i className="fas fa-info-circle me-2"></i>
+                    <small>
+                      Barkod okutucunuz varsa bu alana doğrudan okutabilirsiniz. 
+                      Manuel olarak da girebilirsiniz.
+                    </small>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                type="button" 
-                className="btn btn-outline-main" 
-                onClick={() => setShowBarcodeModal(false)}
-              >
-                İptal
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-main"
-                onClick={handleBarcodeUpdate}
-                disabled={!barcodeInput.trim()}
-              >
-                <i className="fas fa-search me-2"></i>
-                Ürünü Bul
-              </button>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowBarcodeModal(false)}
+                >
+                  <i className="fas fa-times me-2"></i>
+                  İptal
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-main"
+                  onClick={handleBarcodeSearch}
+                  disabled={!barcodeInput.trim()}
+                >
+                  <i className="fas fa-search me-2"></i>
+                  Ürünü Bul
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Custom CSS for highlight effect */}
-      <style jsx>{`
-        .highlight {
-          animation: highlightPulse 2s ease-in-out;
-          background-color: rgba(59, 130, 246, 0.2) !important;
-        }
-        
-        @keyframes highlightPulse {
-          0%, 100% { 
-            background-color: transparent; 
-          }
-          50% { 
-            background-color: rgba(59, 130, 246, 0.3); 
-          }
-        }
-        
-        .product-placeholder {
-          width: 40px;
-          height: 40px;
-          background: var(--light-bg);
-          border: 2px dashed var(--border-color);
-          border-radius: var(--border-radius-xs);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-        }
-        
-        .user-avatar-sm {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: var(--gradient-primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 10px;
-          font-weight: 600;
+      {/* Custom CSS */}
+      <style>{`
+        .bg-light-custom {
+          background-color: rgba(59, 130, 246, 0.05);
+          border: 1px solid rgba(59, 130, 246, 0.1);
         }
         
         .tip-item {
@@ -818,6 +1288,12 @@ const AdminStockUpdate = () => {
         
         .tip-item i {
           margin-top: 2px;
+        }
+        
+        .form-label.small {
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+          color: var(--text-muted);
         }
         
         .badge-sm {
@@ -833,85 +1309,26 @@ const AdminStockUpdate = () => {
           background-color: var(--bg-light-a);
         }
         
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1050;
-          opacity: 0;
-          animation: fadeIn 0.3s ease forwards;
+        .table-custom td {
+          vertical-align: middle;
+          padding: 0.75rem 0.5rem;
         }
         
-        .modal-content {
-          background: white;
-          border-radius: var(--border-radius);
-          box-shadow: var(--shadow-lg);
-          max-width: 500px;
-          width: 90%;
-          max-height: 90vh;
-          overflow-y: auto;
-          transform: scale(0.9);
-          animation: modalScale 0.3s ease forwards;
+        .table-container {
+          overflow-x: auto;
         }
         
-        .modal-header {
-          padding: 24px;
-          border-bottom: 1px solid var(--border-color);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+        .highlight {
+          animation: highlightPulse 2s ease-in-out;
+          background-color: rgba(59, 130, 246, 0.2) !important;
         }
         
-        .modal-title {
-          font-size: var(--font-lg);
-          font-weight: 700;
-          color: var(--dark-text);
-          margin: 0;
-        }
-        
-        .modal-close {
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: var(--gray-color);
-          transition: var(--transition-fast);
-          padding: 4px;
-          border-radius: var(--border-radius-xs);
-        }
-        
-        .modal-close:hover {
-          color: var(--danger-color);
-          background: var(--light-bg);
-        }
-        
-        .modal-body {
-          padding: 24px;
-        }
-        
-        .modal-footer {
-          padding: 16px 24px;
-          border-top: 1px solid var(--border-color);
-          display: flex;
-          gap: 12px;
-          justify-content: flex-end;
-        }
-        
-        @keyframes fadeIn {
-          to {
-            opacity: 1;
+        @keyframes highlightPulse {
+          0%, 100% { 
+            background-color: transparent; 
           }
-        }
-        
-        @keyframes modalScale {
-          to {
-            transform: scale(1);
+          50% { 
+            background-color: rgba(59, 130, 246, 0.3); 
           }
         }
         
@@ -922,12 +1339,16 @@ const AdminStockUpdate = () => {
           }
           
           .table-container {
-            overflow-x: auto;
+            font-size: 0.875rem;
           }
           
-          .modal-content {
-            width: 95%;
-            margin: 20px;
+          .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+          }
+          
+          .form-control-sm {
+            width: 60px !important;
           }
           
           .row .col-md-2,
