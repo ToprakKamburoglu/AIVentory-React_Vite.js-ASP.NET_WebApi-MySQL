@@ -1,86 +1,177 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const ManagerStockMovements = () => {
-  const [movements] = useState([
-    {
-      id: 1,
-      productName: 'iPhone 15 Pro',
-      type: 'in',
-      quantity: 10,
-      user: 'Ayşe Kaya',
-      date: '2024-01-15 14:30',
-      reason: 'Yeni sipariş geldi',
-      oldStock: 5,
-      newStock: 15,
-      reference: 'SIP-001'
-    },
-    {
-      id: 2,
-      productName: 'Samsung Galaxy S24',
-      type: 'out',
-      quantity: 3,
-      user: 'Mehmet Yılmaz',
-      date: '2024-01-15 11:45',
-      reason: 'Satış',
-      oldStock: 15,
-      newStock: 12,
-      reference: 'SAT-156'
-    },
-    {
-      id: 3,
-      productName: 'AirPods Pro',
-      type: 'out',
-      quantity: 8,
-      user: 'Fatma Demir',
-      date: '2024-01-14 16:20',
-      reason: 'Toplu satış',
-      oldStock: 8,
-      newStock: 0,
-      reference: 'SAT-155'
-    },
-    {
-      id: 4,
-      productName: 'MacBook Air M2',
-      type: 'adjustment',
-      quantity: -1,
-      user: 'Admin',
-      date: '2024-01-14 09:15',
-      reason: 'Hasar düzeltmesi',
-      oldStock: 2,
-      newStock: 1,
-      reference: 'DUZ-001'
-    },
-    {
-      id: 5,
-      productName: 'PowerBank 20000mAh',
-      type: 'in',
-      quantity: 20,
-      user: 'Ayşe Kaya',
-      date: '2024-01-13 13:00',
-      reason: 'Tedarikçi teslimatı',
-      oldStock: 5,
-      newStock: 25,
-      reference: 'SIP-002'
-    },
-    {
-      id: 6,
-      productName: 'iPhone Kılıfı',
-      type: 'in',
-      quantity: 50,
-      user: 'Mehmet Yılmaz',
-      date: '2024-01-12 10:30',
-      reason: 'Yeni model geldi',
-      oldStock: 10,
-      newStock: 60,
-      reference: 'SIP-003'
-    }
-  ]);
+  const [movements, setMovements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    today: 0,
+    in: 0,
+    out: 0,
+    adjustments: 0
+  });
 
   const [filterType, setFilterType] = useState('all');
   const [filterDate, setFilterDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [products, setProducts] = useState([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(6); 
 
+ 
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+ 
+  const apiRequest = async (endpoint, options = {}) => {
+    const token = localStorage.getItem('token');
+    
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) return { success: false, message: 'Empty response' };
+      
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  };
+
+
+  const fetchStockMovements = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      let endpoint = '/stock/movements';
+      const params = new URLSearchParams();
+      
+      if (selectedProduct) {
+        params.append('productId', selectedProduct);
+      }
+      
+      if (filterType !== 'all') {
+        params.append('movementType', filterType);
+      }
+      
+      if (params.toString()) {
+        endpoint += `?${params.toString()}`;
+      }
+      
+      console.log('Fetching stock movements:', endpoint);
+      
+      const result = await apiRequest(endpoint);
+      console.log('Stock movements API Response:', result);
+      
+      if (result.success) {
+        setMovements(result.data || []);
+        calculateStats(result.data || []);
+      } else {
+        setError(result.message || 'Stok hareketleri yüklenemedi');
+      }
+    } catch (err) {
+      console.error('Fetch stock movements error:', err);
+      setError('Stok hareketleri yüklenirken hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  const fetchProducts = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId');
+      const result = await apiRequest(`/stock?companyId=${companyId}`);
+      
+      if (result.success && result.data && result.data.data) {
+        const uniqueProducts = result.data.data.reduce((acc, item) => {
+          if (!acc.find(p => p.id === item.id)) {
+            acc.push({
+              id: item.id,
+              name: item.productName
+            });
+          }
+          return acc;
+        }, []);
+        setProducts(uniqueProducts);
+      }
+    } catch (err) {
+      console.error('Fetch products error:', err);
+    }
+  };
+
+ 
+  const calculateStats = (movementsData) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const stats = {
+      total: movementsData.length,
+      today: movementsData.filter(m => m.createdAt && m.createdAt.includes(today)).length,
+      in: movementsData.filter(m => m.movementType === 'in').length,
+      out: movementsData.filter(m => m.movementType === 'out').length,
+      adjustments: movementsData.filter(m => m.movementType === 'adjustment').length
+    };
+    
+    setStats(stats);
+  };
+
+ 
+  useEffect(() => {
+    fetchStockMovements();
+    fetchProducts();
+  }, [selectedProduct, filterType]);
+
+ 
+  const filteredMovements = movements.filter(movement => {
+   
+    if (filterDate && movement.createdAt) {
+      const movementDate = movement.createdAt.split('T')[0];
+      if (movementDate !== filterDate) return false;
+    }
+    
+  
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      if (!movement.productName?.toLowerCase().includes(searchLower) &&
+          !movement.reason?.toLowerCase().includes(searchLower) &&
+          !movement.notes?.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
+ 
+  const totalPages = Math.ceil(filteredMovements.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedMovements = filteredMovements.slice(startIndex, endIndex);
+
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, filterDate, searchTerm, selectedProduct]);
+
+ 
   const getMovementIcon = (type) => {
     switch (type) {
       case 'in':
@@ -120,32 +211,49 @@ const ManagerStockMovements = () => {
     }
   };
 
-  const filteredMovements = movements.filter(movement => {
-    if (filterType !== 'all' && movement.type !== filterType) return false;
-    if (filterDate && !movement.date.includes(filterDate)) return false;
-    if (searchTerm && !movement.productName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !movement.user.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !movement.reference.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    return true;
-  });
-
-  const getMovementStats = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayMovements = movements.filter(m => m.date.includes(today));
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Bilinmiyor';
     
-    return {
-      total: movements.length,
-      today: todayMovements.length,
-      in: movements.filter(m => m.type === 'in').length,
-      out: movements.filter(m => m.type === 'out').length,
-      adjustments: movements.filter(m => m.type === 'adjustment').length
-    };
+    try {
+      const date = new Date(dateString);
+      const dateStr = date.toLocaleDateString('tr-TR');
+      const timeStr = date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      return { date: dateStr, time: timeStr };
+    } catch {
+      return { date: 'Geçersiz tarih', time: '' };
+    }
   };
 
-  const stats = getMovementStats();
+
+
+
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Yükleniyor...</span>
+        </div>
+        <p className="mt-3 text-gray">Stok hareketleri yükleniyor...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="stock-movements-page">
+      {/* Error Message */}
+      {error && (
+        <div className="alert alert-danger alert-dismissible" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          {error}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setError(null)}
+          ></button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -158,11 +266,11 @@ const ManagerStockMovements = () => {
           </p>
         </div>
         <div className="d-flex gap-2">
-          <Link to="/manager/stock" className="btn btn-outline-main">
+          <Link to="/admin/stock" className="btn btn-outline-main">
             <i className="fas fa-warehouse me-2"></i>
             Stok Durumu
           </Link>
-          <button className="btn btn-main">
+          <button className="btn btn-main" onClick={() => window.print()}>
             <i className="fas fa-download me-2"></i>
             Rapor İndir
           </button>
@@ -229,22 +337,22 @@ const ManagerStockMovements = () => {
       </div>
 
       {/* Filters */}
-      <div className="dashboard-card mb-4">
+      <div className="dashboard-card mb-4 p-1">
         <div className="card-body">
-          <div className="row align-items-center">
+          <div className="row g-3 align-items-center">
             <div className="col-md-3">
               <div className="header-search">
                 <i className="fas fa-search search-icon"></i>
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="Ürün, kullanıcı veya referans ara..."
+                  placeholder="Ürün veya sebep ara..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-2">
               <select 
                 className="form-control form-select"
                 value={filterType}
@@ -257,6 +365,20 @@ const ManagerStockMovements = () => {
               </select>
             </div>
             <div className="col-md-3">
+              <select
+                className="form-control form-select"
+                value={selectedProduct}
+                onChange={(e) => setSelectedProduct(e.target.value)}
+              >
+                <option value="">Tüm Ürünler</option>
+                {products.map(product => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-2">
               <input
                 type="date"
                 className="form-control"
@@ -264,17 +386,13 @@ const ManagerStockMovements = () => {
                 onChange={(e) => setFilterDate(e.target.value)}
               />
             </div>
-            <div className="col-md-3">
+            <div className="col-md-2">
               <button 
-                className="btn btn-outline-main w-100"
-                onClick={() => {
-                  setFilterType('all');
-                  setFilterDate('');
-                  setSearchTerm('');
-                }}
+                className="btn btn-outline-secondary w-100"
+                onClick={fetchStockMovements}
               >
-                <i className="fas fa-undo me-2"></i>
-                Filtreleri Temizle
+                <i className="fas fa-sync me-2"></i>
+                Yenile
               </button>
             </div>
           </div>
@@ -286,192 +404,138 @@ const ManagerStockMovements = () => {
         <table className="table-custom">
           <thead>
             <tr>
-              <th>Hareket Tipi</th>
-              <th>Ürün</th>
-              <th>Miktar</th>
-              <th>Önceki Stok</th>
-              <th>Yeni Stok</th>
-              <th>Kullanıcı</th>
-              <th>Sebep</th>
-              <th>Referans</th>
-              <th>Tarih</th>
+              <th className="text-center">Hareket Tipi</th>
+              <th className="text-center">Ürün</th>
+              <th className="text-center">Miktar</th>
+              <th className="text-center">Önceki Stok</th>
+              <th className="text-center">Yeni Stok</th>
+              <th className="text-center">Birim Maliyet</th>
+              <th className="text-center">Toplam Maliyet</th>
+              <th className="text-center">Sebep</th>
+              <th className="text-center">Notlar</th>
+              <th className="text-center">Tarih</th>
             </tr>
           </thead>
           <tbody>
-            {filteredMovements.map(movement => (
-              <tr key={movement.id}>
-                <td>
-                  <span className={`badge badge-${getMovementColor(movement.type)}`}>
-                    <i className={`${getMovementIcon(movement.type)} me-1`}></i>
-                    {getMovementText(movement.type)}
-                  </span>
-                </td>
-                <td>
-                  <div className="d-flex align-items-center">
-                    <div className="me-3">
-                      <i className="fas fa-box text-main"></i>
+            {paginatedMovements.map(movement => {
+              const { date, time } = formatDate(movement.createdAt);
+              return (
+                <tr key={movement.id}>
+                  <td>
+                    <span className={`badge badge-${getMovementColor(movement.movementType)}`}>
+                      <i className={`${getMovementIcon(movement.movementType)} me-1`}></i>
+                      {getMovementText(movement.movementType)}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="d-flex align-items-center">
+                      <div>
+                        <div className="fw-bold">{movement.productName || 'Bilinmiyor'}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="fw-bold">{movement.productName}</div>
+                  </td>
+                  <td className="text-center">
+                    <span className={`fw-bold ${
+                      movement.movementType === 'in' ? 'text-success' : 
+                      movement.movementType === 'out' ? 'text-danger' : 
+                      'text-warning'
+                    }`}>
+                      {movement.movementType === 'in' ? '+' : 
+                       movement.movementType === 'out' ? '-' : '±'}
+                      {movement.quantity || 0}
+                    </span>
+                  </td>
+                  <td className="text-center">{movement.previousStock || 0}</td>
+                  <td className="text-center">
+                    <span className="fw-bold">{movement.newStock || 0}</span>
+                  </td>
+                  <td className="text-center">
+                    {movement.unitCost ? `₺${movement.unitCost.toFixed(2)}` : '-'}
+                  </td>
+                  <td className="text-center">
+                    {movement.totalCost ? `₺${movement.totalCost.toFixed(2)}` : '-'}
+                  </td>
+                  <td className="text-center">
+                    <small className="text-center fw-bold">{movement.reason || 'Belirtilmemiş'}</small>
+                  </td>
+                  <td className="text-center">
+                    <small className="text-center">{movement.notes || '-'}</small>
+                  </td>
+                  <td>
+                    <div className="small">
+                      <div>{date}</div>
+                      <div className="text-center">{time}</div>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <span className={`fw-bold ${movement.type === 'in' ? 'text-success' : movement.type === 'out' ? 'text-danger' : 'text-warning'}`}>
-                    {movement.type === 'in' ? '+' : movement.type === 'out' ? '-' : ''}
-                    {Math.abs(movement.quantity)}
-                  </span>
-                </td>
-                <td>{movement.oldStock}</td>
-                <td>
-                  <span className="fw-bold">{movement.newStock}</span>
-                </td>
-                <td>
-                  <div className="d-flex align-items-center">
-                    <div className="user-avatar-sm me-2">
-                      {movement.user.charAt(0)}
-                    </div>
-                    {movement.user}
-                  </div>
-                </td>
-                <td>
-                  <small className="text-gray">{movement.reason}</small>
-                </td>
-                <td>
-                  <code className="small">{movement.reference}</code>
-                </td>
-                <td>
-                  <div className="small">
-                    <div>{movement.date.split(' ')[0]}</div>
-                    <div className="text-gray">{movement.date.split(' ')[1]}</div>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {filteredMovements.length === 0 && (
-        <div className="text-center py-5">
-          <i className="fas fa-search text-gray fs-1 mb-3"></i>
-          <h5 className="text-gray">Hareket bulunamadı</h5>
-          <p className="text-gray">Arama kriterlerinizi değiştirin</p>
+      {/* Pagination ve Info */}
+      {filteredMovements.length > 0 && (
+        <div className="d-flex justify-content-between align-items-center mt-4">
+          <small className="text-gray">
+            Toplam {filteredMovements.length} kayıttan {startIndex + 1}-{Math.min(endIndex, filteredMovements.length)} arası gösteriliyor
+          </small>
+          
+          {totalPages > 1 && (
+            <nav aria-label="Stok hareketleri pagination">
+              <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <i className="fas fa-chevron-left"></i>
+                  </button>
+                </li>
+                
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  return (
+                    <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
+                      <button 
+                        className="page-link" 
+                        onClick={() => setCurrentPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    </li>
+                  );
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <i className="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       )}
 
-      {/* Movement Analysis */}
-      <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-chart-pie text-main me-2"></i>
-                Hareket Analizi
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="movement-analysis">
-                <div className="analysis-item mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-arrow-up text-success me-2"></i>
-                      <span>Stok Girişleri</span>
-                    </div>
-                    <span className="badge badge-success">{stats.in}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar success" 
-                      style={{ width: `${(stats.in / stats.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="analysis-item mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-arrow-down text-danger me-2"></i>
-                      <span>Stok Çıkışları</span>
-                    </div>
-                    <span className="badge badge-danger">{stats.out}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar danger" 
-                      style={{ width: `${(stats.out / stats.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="analysis-item">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-edit text-warning me-2"></i>
-                      <span>Düzeltmeler</span>
-                    </div>
-                    <span className="badge badge-warning">{stats.adjustments}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar warning" 
-                      style={{ width: `${(stats.adjustments / stats.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {paginatedMovements.length === 0 && !loading && (
+        <div className="text-center py-5">
+          <i className="fas fa-search text-gray fs-1 mb-3"></i>
+          <h5 className="text-gray">Hareket bulunamadı</h5>
+          <p className="text-gray">
+            {searchTerm || filterDate || selectedProduct || filterType !== 'all' 
+              ? 'Arama kriterlerinizi değiştirin' 
+              : 'Henüz stok hareketi kaydı yok'}
+          </p>
         </div>
+      )}
 
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-users text-main me-2"></i>
-                En Aktif Kullanıcılar
-              </h5>
-            </div>
-            <div className="card-body">
-              {/* User activity analysis */}
-              <div className="user-activity">
-                <div className="activity-item d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <div className="user-avatar-sm me-3">A</div>
-                    <div>
-                      <div className="fw-bold">Ayşe Kaya</div>
-                      <small className="text-gray">En son: 2 saat önce</small>
-                    </div>
-                  </div>
-                  <span className="badge badge-main">12 hareket</span>
-                </div>
 
-                <div className="activity-item d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <div className="user-avatar-sm me-3">M</div>
-                    <div>
-                      <div className="fw-bold">Mehmet Yılmaz</div>
-                      <small className="text-gray">En son: 5 saat önce</small>
-                    </div>
-                  </div>
-                  <span className="badge badge-secondary">8 hareket</span>
-                </div>
-
-                <div className="activity-item d-flex justify-content-between align-items-center">
-                  <div className="d-flex align-items-center">
-                    <div className="user-avatar-sm me-3">F</div>
-                    <div>
-                      <div className="fw-bold">Fatma Demir</div>
-                      <small className="text-gray">En son: 1 gün önce</small>
-                    </div>
-                  </div>
-                  <span className="badge badge-success">6 hareket</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

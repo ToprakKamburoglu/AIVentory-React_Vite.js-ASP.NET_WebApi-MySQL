@@ -226,30 +226,7 @@ const AdminStockMovements = () => {
 
 
 
-  const getMostActiveUsers = () => {
-    const userStats = {};
-    
-    movements.forEach(movement => {
-      const userId = movement.userId || 'Unknown';
-      if (!userStats[userId]) {
-        userStats[userId] = {
-          userId,
-          count: 0,
-          lastActivity: movement.createdAt
-        };
-      }
-      userStats[userId].count++;
-      
-      
-      if (new Date(movement.createdAt) > new Date(userStats[userId].lastActivity)) {
-        userStats[userId].lastActivity = movement.createdAt;
-      }
-    });
-    
-    return Object.values(userStats)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 3);
-  };
+
 
   if (loading) {
     return (
@@ -360,10 +337,10 @@ const AdminStockMovements = () => {
       </div>
 
       {/* Filters */}
-      <div className="dashboard-card mb-4">
+      <div className="dashboard-card mb-4 p-1">
         <div className="card-body">
-          <div className="row align-items-center">
-            <div className="col-md-2">
+          <div className="row g-3 align-items-center">
+            <div className="col-md-3">
               <div className="header-search">
                 <i className="fas fa-search search-icon"></i>
                 <input
@@ -387,7 +364,7 @@ const AdminStockMovements = () => {
                 <option value="adjustment">Sadece Düzeltmeler</option>
               </select>
             </div>
-            <div className="col-md-2">
+            <div className="col-md-3">
               <select
                 className="form-control form-select"
                 value={selectedProduct}
@@ -409,10 +386,9 @@ const AdminStockMovements = () => {
                 onChange={(e) => setFilterDate(e.target.value)}
               />
             </div>
-
             <div className="col-md-2">
               <button 
-                className="btn btn-main w-100"
+                className="btn btn-outline-secondary w-100"
                 onClick={fetchStockMovements}
               >
                 <i className="fas fa-sync me-2"></i>
@@ -428,16 +404,16 @@ const AdminStockMovements = () => {
         <table className="table-custom">
           <thead>
             <tr>
-              <th>Hareket Tipi</th>
-              <th>Ürün</th>
-              <th>Miktar</th>
-              <th>Önceki Stok</th>
-              <th>Yeni Stok</th>
-              <th>Birim Maliyet</th>
-              <th>Toplam Maliyet</th>
-              <th>Sebep</th>
-              <th>Notlar</th>
-              <th>Tarih</th>
+              <th className="text-center">Hareket Tipi</th>
+              <th className="text-center">Ürün</th>
+              <th className="text-center">Miktar</th>
+              <th className="text-center">Önceki Stok</th>
+              <th className="text-center">Yeni Stok</th>
+              <th className="text-center">Birim Maliyet</th>
+              <th className="text-center">Toplam Maliyet</th>
+              <th className="text-center">Sebep</th>
+              <th className="text-center">Notlar</th>
+              <th className="text-center">Tarih</th>
             </tr>
           </thead>
           <tbody>
@@ -453,15 +429,12 @@ const AdminStockMovements = () => {
                   </td>
                   <td>
                     <div className="d-flex align-items-center">
-                      <div className="me-3">
-                        <i className="fas fa-box text-main"></i>
-                      </div>
                       <div>
                         <div className="fw-bold">{movement.productName || 'Bilinmiyor'}</div>
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td className="text-center">
                     <span className={`fw-bold ${
                       movement.movementType === 'in' ? 'text-success' : 
                       movement.movementType === 'out' ? 'text-danger' : 
@@ -472,26 +445,26 @@ const AdminStockMovements = () => {
                       {movement.quantity || 0}
                     </span>
                   </td>
-                  <td>{movement.previousStock || 0}</td>
-                  <td>
+                  <td className="text-center">{movement.previousStock || 0}</td>
+                  <td className="text-center">
                     <span className="fw-bold">{movement.newStock || 0}</span>
                   </td>
-                  <td>
+                  <td className="text-center">
                     {movement.unitCost ? `₺${movement.unitCost.toFixed(2)}` : '-'}
                   </td>
-                  <td>
+                  <td className="text-center">
                     {movement.totalCost ? `₺${movement.totalCost.toFixed(2)}` : '-'}
                   </td>
-                  <td>
-                    <small className="text-gray">{movement.reason || 'Belirtilmemiş'}</small>
+                  <td className="text-center">
+                    <small className="text-center fw-bold">{movement.reason || 'Belirtilmemiş'}</small>
                   </td>
-                  <td>
-                    <small className="text-gray">{movement.notes || '-'}</small>
+                  <td className="text-center">
+                    <small className="text-center">{movement.notes || '-'}</small>
                   </td>
                   <td>
                     <div className="small">
                       <div>{date}</div>
-                      <div className="text-gray">{time}</div>
+                      <div className="text-center">{time}</div>
                     </div>
                   </td>
                 </tr>
@@ -501,55 +474,52 @@ const AdminStockMovements = () => {
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="d-flex justify-content-end mt-4">
-          <nav aria-label="Stok hareketleri pagination">
-            <ul className="pagination">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button 
-                  className="page-link" 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  <i className="fas fa-chevron-left"></i>
-                </button>
-              </li>
-              
-              {Array.from({ length: totalPages }, (_, index) => {
-                const pageNumber = index + 1;
-                return (
-                  <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                    <button 
-                      className="page-link" 
-                      onClick={() => setCurrentPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </button>
-                  </li>
-                );
-              })}
-              
-              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                <button 
-                  className="page-link" 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  <i className="fas fa-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      )}
-
-      {/* Pagination Info */}
+      {/* Pagination ve Info */}
       {filteredMovements.length > 0 && (
-        <div className="text-center mt-3">
+        <div className="d-flex justify-content-between align-items-center mt-4">
           <small className="text-gray">
             Toplam {filteredMovements.length} kayıttan {startIndex + 1}-{Math.min(endIndex, filteredMovements.length)} arası gösteriliyor
           </small>
+          
+          {totalPages > 1 && (
+            <nav aria-label="Stok hareketleri pagination">
+              <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <i className="fas fa-chevron-left"></i>
+                  </button>
+                </li>
+                
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  return (
+                    <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
+                      <button 
+                        className="page-link" 
+                        onClick={() => setCurrentPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    </li>
+                  );
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button 
+                    className="page-link" 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <i className="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       )}
 
@@ -565,109 +535,7 @@ const AdminStockMovements = () => {
         </div>
       )}
 
-      {/* Movement Analysis */}
-      <div className="row mt-4">
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-chart-pie text-main me-2"></i>
-                Hareket Analizi
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="movement-analysis">
-                <div className="analysis-item mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-arrow-up text-success me-2"></i>
-                      <span>Stok Girişleri</span>
-                    </div>
-                    <span className="badge badge-success">{stats.in}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar success" 
-                      style={{ width: `${stats.total > 0 ? (stats.in / stats.total) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                </div>
 
-                <div className="analysis-item mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-arrow-down text-danger me-2"></i>
-                      <span>Stok Çıkışları</span>
-                    </div>
-                    <span className="badge badge-danger">{stats.out}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar danger" 
-                      style={{ width: `${stats.total > 0 ? (stats.out / stats.total) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="analysis-item">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <i className="fas fa-edit text-warning me-2"></i>
-                      <span>Düzeltmeler</span>
-                    </div>
-                    <span className="badge badge-warning">{stats.adjustments}</span>
-                  </div>
-                  <div className="progress mt-2">
-                    <div 
-                      className="progress-bar warning" 
-                      style={{ width: `${stats.total > 0 ? (stats.adjustments / stats.total) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6">
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h5 className="card-title">
-                <i className="fas fa-users text-main me-2"></i>
-                En Aktif Kullanıcılar
-              </h5>
-            </div>
-            <div className="card-body">
-              <div className="user-activity">
-                {getMostActiveUsers().map((user, index) => (
-                  <div key={user.userId} className="activity-item d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="user-avatar-sm me-3">
-                        {user.userId.toString().charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="fw-bold">Kullanıcı {user.userId}</div>
-                        <small className="text-gray">
-                          En son: {formatDate(user.lastActivity).date}
-                        </small>
-                      </div>
-                    </div>
-                    <span className={`badge ${index === 0 ? 'badge-main' : index === 1 ? 'badge-secondary' : 'badge-success'}`}>
-                      {user.count} hareket
-                    </span>
-                  </div>
-                ))}
-                
-                {getMostActiveUsers().length === 0 && (
-                  <div className="text-center py-3">
-                    <small className="text-gray">Henüz hareket kaydı yok</small>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
