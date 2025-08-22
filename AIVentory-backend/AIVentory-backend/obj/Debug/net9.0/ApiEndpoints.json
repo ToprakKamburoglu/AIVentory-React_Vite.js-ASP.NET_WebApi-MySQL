@@ -33,22 +33,6 @@
   },
   {
     "ContainingType": "AIVentory_backend.Controllers.AIController",
-    "Method": "PriceRecommendation",
-    "RelativePath": "api/AI/price-recommendation",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "AIVentory_backend.Controllers.PriceAnalysisRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AIVentory_backend.Controllers.AIController",
     "Method": "GetPriceRecommendation",
     "RelativePath": "api/AI/price-recommendation/{productId}",
     "HttpMethod": "GET",
@@ -87,22 +71,6 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AIVentory_backend.Controllers.AIController",
-    "Method": "StockPrediction",
-    "RelativePath": "api/AI/stock-prediction",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "AIVentory_backend.Controllers.StockPredictionRequest",
-        "IsRequired": true
-      }
-    ],
     "ReturnTypes": []
   },
   {

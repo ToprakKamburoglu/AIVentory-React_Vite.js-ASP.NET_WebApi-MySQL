@@ -55,7 +55,7 @@ namespace AIVentory_backend.Models.Entities
         [MaxLength(100)]
         public string? Dimensions { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(1000)]
         public string? ImageUrl { get; set; }
 
         [Column(TypeName = "json")]

@@ -102,68 +102,6 @@
         }
       }
     },
-    "/api/AI/price-recommendation": {
-      "post": {
-        "tags": [
-          "AI"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PriceAnalysisRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PriceAnalysisRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/PriceAnalysisRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/AI/stock-prediction": {
-      "post": {
-        "tags": [
-          "AI"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StockPredictionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StockPredictionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/StockPredictionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/AI/analyses": {
       "get": {
         "tags": [
@@ -2055,31 +1993,6 @@
         },
         "additionalProperties": false
       },
-      "PriceAnalysisRequest": {
-        "type": "object",
-        "properties": {
-          "productName": {
-            "type": "string",
-            "nullable": true
-          },
-          "category": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "ProductAnalysisRequest": {
         "type": "object",
         "properties": {
@@ -2147,20 +2060,6 @@
           "newReservedStock": {
             "type": "integer",
             "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "StockPredictionRequest": {
-        "type": "object",
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "nullable": true
-          },
-          "model": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false

@@ -4,8 +4,6 @@ import { useAuth } from '../../../hooks/useAuth';
 
 const AdminProductList = () => {
   const { user } = useAuth(); 
-  
-  // State management
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

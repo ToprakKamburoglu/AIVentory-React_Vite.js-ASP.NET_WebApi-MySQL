@@ -106,7 +106,7 @@ CREATE TABLE Products (
     Size VARCHAR(50),
     Weight DECIMAL(8,2), -- kg cinsinden
     Dimensions VARCHAR(100), -- 20x30x10 cm formatında
-    ImageUrl VARCHAR(500),
+    ImageUrl VARCHAR(1000),
     Images JSON, -- Çoklu resim desteği
     MinimumStock INT DEFAULT 0,
     MaximumStock INT DEFAULT NULL,
