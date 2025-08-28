@@ -436,7 +436,7 @@ namespace AIVentory_backend.Controllers
                         ImageUrl = (request.ImageUrl ?? "base64_image").Length > 500
                         ? (request.ImageUrl ?? "base64_image").Substring(0, 500)
                         : (request.ImageUrl ?? "base64_image"),
-                        AnalysisType = "llava_product_recognition",
+                        AnalysisType = "product_recognition",
                         AnalysisResult = JsonSerializer.Serialize(enhancedResult),
                         Confidence = (decimal)Math.Round(enhancedResult.confidence, 2),
                         DetectedName = enhancedResult.detectedName?.Substring(0, Math.Min(100, enhancedResult.detectedName.Length)),
@@ -483,7 +483,7 @@ namespace AIVentory_backend.Controllers
         }
 
 
-       
+
         [HttpPost("color-analysis")]
         public async Task<ActionResult> ColorAnalysis([FromBody] ProductAnalysisRequest request)
         {
@@ -494,7 +494,6 @@ namespace AIVentory_backend.Controllers
                     return BadRequest(new { success = false, message = "Resim URL'si veya Base64 verisi gereklidir" });
                 }
 
-               
                 var dominantColors = new List<object>();
 
                 if (!string.IsNullOrEmpty(request.ImageBase64))
@@ -517,31 +516,31 @@ namespace AIVentory_backend.Controllers
                 if (textModel != null && dominantColors.Count == 0)
                 {
                     var colorPrompt = @"
-                    Bir renk analizi sonucu oluştur. Aşağıdaki JSON formatında cevap ver:
-                    {
-                        ""dominantColors"": [
-                            {""color"": ""#3B82F6"", ""name"": ""Bright Blue"", ""percentage"": 42.5},
-                            {""color"": ""#10B981"", ""name"": ""Emerald Green"", ""percentage"": 28.3}
-                        ],
-                        ""colorHarmony"": ""Triadic"",
-                        ""colorTemperature"": ""Cool"",
-                        ""brightness"": 72,
-                        ""saturation"": 68
-                    }
-                    
-                    Farklı renklerle örnek oluştur. Sadece JSON formatında cevap ver.";
+            Bir renk analizi sonucu oluştur. Aşağıdaki JSON formatında cevap ver:
+            {
+                ""dominantColors"": [
+                    {""color"": ""#3B82F6"", ""name"": ""Bright Blue"", ""percentage"": 42.5},
+                    {""color"": ""#10B981"", ""name"": ""Emerald Green"", ""percentage"": 28.3}
+                ],
+                ""colorHarmony"": ""Triadic"",
+                ""colorTemperature"": ""Cool"",
+                ""brightness"": 72,
+                ""saturation"": 68
+            }
+            
+            Farklı renklerle örnek oluştur. Sadece JSON formatında cevap ver.";
 
                     var colorRequest = new ChatRequest
                     {
                         Model = textModel.Name,
                         Messages = new List<Message>
-                        {
-                            new Message
-                            {
-                                Role = OllamaSharp.Models.Chat.ChatRole.User,
-                                Content = colorPrompt
-                            }
-                        },
+                {
+                    new Message
+                    {
+                        Role = OllamaSharp.Models.Chat.ChatRole.User,
+                        Content = colorPrompt
+                    }
+                },
                         Stream = false
                     };
 
@@ -555,7 +554,6 @@ namespace AIVentory_backend.Controllers
                         }
                     }
 
-                   
                     try
                     {
                         var jsonStr = ExtractJsonFromResponse(aiResponseContent ?? "");
@@ -572,15 +570,14 @@ namespace AIVentory_backend.Controllers
                     }
                 }
 
-              
                 if (dominantColors.Count == 0)
                 {
                     dominantColors = new List<object>
-                    {
-                        new { color = "#3B82F6", name = "Bright Blue", percentage = 42.5 },
-                        new { color = "#10B981", name = "Emerald Green", percentage = 28.3 },
-                        new { color = "#F59E0B", name = "Amber", percentage = 15.7 }
-                    };
+            {
+                new { color = "#3B82F6", name = "Bright Blue", percentage = 42.5 },
+                new { color = "#10B981", name = "Emerald Green", percentage = 28.3 },
+                new { color = "#F59E0B", name = "Amber", percentage = 15.7 }
+            };
                 }
 
                 var colorAnalysisResult = new
@@ -604,6 +601,67 @@ namespace AIVentory_backend.Controllers
                     createdAt = DateTime.Now
                 };
 
+                try
+                {
+                    
+                    string detectedColors = "";
+                    if (dominantColors.Count > 0)
+                    {
+                        var colorNames = new List<string>();
+                        foreach (var color in dominantColors.Take(3))
+                        {
+                            try
+                            {
+                                dynamic colorObj = color;
+                                if (colorObj.name != null)
+                                {
+                                    colorNames.Add(colorObj.name.ToString());
+                                }
+                            }
+                            catch
+                            {
+                                
+                            }
+                        }
+                        detectedColors = string.Join(", ", colorNames);
+                    }
+
+                    var aiAnalysis = new AIAnalysis
+                    {
+                        CompanyId = 1, 
+                        ProductId = request.ProductId,
+                        ImageUrl = (request.ImageUrl ?? "base64_color_analysis").Length > 500
+                            ? (request.ImageUrl ?? "base64_color_analysis").Substring(0, 500)
+                            : (request.ImageUrl ?? "base64_color_analysis"),
+                        AnalysisType = "color_analysis",
+                        AnalysisResult = JsonSerializer.Serialize(colorAnalysisResult),
+                        Confidence = (decimal)colorAnalysisResult.confidence,
+                        DetectedName = "Color Palette Analysis",
+                        DetectedCategory = "Color Analysis",
+                        DetectedBrand = null,
+                        DetectedColor = string.IsNullOrEmpty(detectedColors) ? "Multiple Colors" : detectedColors,
+                        SuggestedPrice = 0,
+                        ProcessingTime = colorAnalysisResult.processingTime,
+                        AIModel = colorAnalysisResult.aiModel.Length > 50
+                            ? colorAnalysisResult.aiModel.Substring(0, 50)
+                            : colorAnalysisResult.aiModel,
+                        Status = "completed",
+                        UserId = 1, 
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+
+                    _context.AIAnalysis.Add(aiAnalysis);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Color Analysis saved to AIAnalysis table with ID: {AnalysisId}", aiAnalysis.Id);
+                }
+                catch (Exception dbEx)
+                {
+                    _logger.LogError(dbEx, "Failed to save color analysis to database: {Error}", dbEx.Message);
+                    
+                }
+
                 return Ok(new
                 {
                     success = true,
@@ -623,7 +681,7 @@ namespace AIVentory_backend.Controllers
             }
         }
 
-       
+
         [HttpGet("price-recommendation/{productId}")]
         public async Task<ActionResult> GetPriceRecommendation(int productId)
         {

@@ -483,10 +483,8 @@ const EmployeeProductRecognition = () => {
         costPrice: analysisResult.estimatedPrice ? (analysisResult.estimatedPrice * 0.7) : 0, 
         currentStock: 1, 
         minimumStock: 1, 
-        barcode: analysisResult.barcodeSuggestion || '',
-        imageUrl: selectedImage.preview.length > 500 
-        ? selectedImage.preview.substring(0, 500) 
-        : selectedImage.preview
+        barcode: analysisResult.barcodeSuggestion || `AI${Date.now()}`,
+        imageUrl: null 
       };
 
       console.log('Saving product to database:', productData);

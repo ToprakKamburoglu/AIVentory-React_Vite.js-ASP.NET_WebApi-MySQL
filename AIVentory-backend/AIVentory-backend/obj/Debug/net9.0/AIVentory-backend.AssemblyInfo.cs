@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AIVentory-backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4195a88818800b6b79443c78742bbfcdc3d9956")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+271e1353a11eb3190a51e2030d7a5b605ddb0175")]
 [assembly: System.Reflection.AssemblyProductAttribute("AIVentory-backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AIVentory-backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -35,7 +35,7 @@ namespace AIVentory_backend.Controllers
                 _logger.LogInformation("GetProducts endpoint called");
                 var query = _context.Products
                     .Include(p => p.Stock)
-                    .Include(p => p.Category) // company id ye dikkat et (bi daha bak) postman
+                    .Include(p => p.Category) 
                     .Where(p => p.IsActive);
 
                 if (companyId.HasValue)

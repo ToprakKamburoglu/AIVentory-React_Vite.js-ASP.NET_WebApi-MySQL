@@ -39,7 +39,7 @@ const EmployeeProductList = () => {
     minimumStock: '',
     barcode: '',
     image: null,
-    imagePreview: null
+    imagePreview: null 
   });
 
   const API_BASE_URL = 'http://localhost:5000/api';
