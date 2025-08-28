@@ -115,7 +115,7 @@ const Footer = () => {
           </div>
           <div className="col-md-6 text-md-end">
             <span className="text-sm">
-              Türkiye'de ❤️ ile geliştirildi
+              🇹🇷 Türkiye'de geliştirildi
             </span>
           </div>
         </div>

@@ -247,14 +247,6 @@ const Login = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Debug Info */}
-              <div className="mt-3 text-center">
-                <small style={{ color: '#666' }}>
-                  Debug: {isAuthenticated ? 'Authenticated' : 'Not authenticated'} 
-                  {user && ` | Role: ${user.role} | Name: ${user.firstName}`}
-                </small>
-              </div>
             </div>
           </div>
         </div>

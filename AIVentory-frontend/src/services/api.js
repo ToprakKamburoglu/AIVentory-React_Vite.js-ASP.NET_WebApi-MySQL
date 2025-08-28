@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'axios'; 
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+}); 
 
 api.interceptors.request.use(
   (config) => {
@@ -41,3 +41,11 @@ export const authAPI = {
 };
 
 export default api;
+
+
+
+
+
+
+
+

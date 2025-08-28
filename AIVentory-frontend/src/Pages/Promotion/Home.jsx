@@ -23,9 +23,9 @@ const Home = () => {
                     <i className="fas fa-rocket me-2"></i>
                     Hemen Başla
                   </Link>
-                  <Link to="/features" className="btn btn-main">
-                    <i className="fas fa-play me-2"></i>
-                    Demo İzle
+                  <Link to="/contact" className="btn btn-main">
+                    <i className="fas fa-phone me-2"></i>
+                    Demo Talep Et
                   </Link>
                 </div>
                 <div className="row mt-5 fade-in-up" style={{animationDelay: '0.6s'}}>

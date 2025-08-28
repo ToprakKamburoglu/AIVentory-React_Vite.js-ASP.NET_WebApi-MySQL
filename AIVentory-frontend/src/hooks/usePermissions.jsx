@@ -101,7 +101,7 @@ export const usePermissions = () => {
     return hasPermission(`delete_${resource}`) || hasPermission(`manage_${resource}`);
   };
 
-  // Kullanıcı yönetimi yetkileri
+
   const canManageUsers = () => {
     return hasPermission('manage_users');
   };
@@ -111,13 +111,13 @@ export const usePermissions = () => {
   };
 
   const canEditUser = (targetUserId) => {
-    // Kendi profilini herkes düzenleyebilir
+    
     if (user?.id === targetUserId) return true;
     
-    // Admin herkesi düzenleyebilir
+ 
     if (isAdmin) return true;
     
-    // Manager sadece employee'ları düzenleyebilir
+   
     if (isManager && hasPermission('edit_user')) return true;
     
     return false;

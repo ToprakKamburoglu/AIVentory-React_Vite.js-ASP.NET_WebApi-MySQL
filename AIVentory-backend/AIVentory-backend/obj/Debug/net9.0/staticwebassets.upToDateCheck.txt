@@ -13,3 +13,4 @@ wwwroot\uploads\products\d198e388-2262-48cb-92d0-83143f185bbe.jpeg
 wwwroot\uploads\products\f4c1a1a2-b706-4b28-8912-3c4e86f37eaf.jpeg
 wwwroot\uploads\products\dd4074d9-0973-4d37-b4f1-63e5bd5d20d1.jpg
 wwwroot\uploads\avatars\27_7d4466e2-daa9-4677-8572-9630b9e27c7d.webp
+wwwroot\uploads\products\7ebfcafb-cb8b-4034-8081-fb8a14d2b6b0.webp

@@ -9,7 +9,7 @@ const AdminColorAnalysis = () => {
   const [analysisHistory, setAnalysisHistory] = useState([
     {
       id: 1,
-      date: '2024-01-15 14:30',
+      date: '2025-08-22 14:30',
       image: '/images/demo-color-1.jpg',
       result: {
         dominantColors: [
@@ -31,7 +31,7 @@ const AdminColorAnalysis = () => {
   const cameraInputRef = useRef(null);
   const API_BASE_URL = 'http://localhost:5000';
 
- 
+  // Ollama bağlantı testi
   const testOllamaConnection = async () => {
     setTestingOllama(true);
     try {
@@ -158,8 +158,8 @@ const AdminColorAnalysis = () => {
     setAnalysisResult(null);
 
     try {
-     
-      const base64Data = selectedImage.preview.split(',')[1]; 
+      // Base64 string'i hazırla
+      const base64Data = selectedImage.preview.split(',')[1]; // data:image/jpeg;base64, kısmını çıkar
 
       const requestBody = {
         imageUrl: selectedImage.preview,
@@ -180,7 +180,7 @@ const AdminColorAnalysis = () => {
       if (result.success) {
         setAnalysisResult(result.data);
 
-       
+        // Geçmişe ekle
         const newHistoryItem = {
           id: Date.now(),
           date: new Date().toLocaleString('tr-TR'),
@@ -191,7 +191,7 @@ const AdminColorAnalysis = () => {
         };
         setAnalysisHistory(prev => [newHistoryItem, ...prev.slice(0, 9)]);
 
-      
+        // Başarı mesajı
         alert(`✅ Renk analizi tamamlandı!\n\nBulunan ${result.data.dominantColors?.length || 0} baskın renk\nAI Model: ${result.data.aiModel}\nİşlem Süresi: ${result.data.processingTime}ms`);
       } else {
         alert(`❌ Renk analizi başarısız: ${result.message}`);
@@ -286,11 +286,6 @@ const AdminColorAnalysis = () => {
     }
   };
 
-  const editColorPalette = () => {
-   
-    alert('Renk paleti düzenleme özelliği yakında eklenecek!');
-  };
-
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -308,7 +303,7 @@ const AdminColorAnalysis = () => {
       const colors = analysisResult.dominantColors.slice(0, 3).map(c => c.color);
       const gradient = `linear-gradient(45deg, ${colors.join(', ')})`;
       
-     
+      // Gradient önizlemesi göster
       const gradientDiv = document.createElement('div');
       gradientDiv.style.cssText = `
         position: fixed;
@@ -345,7 +340,7 @@ const AdminColorAnalysis = () => {
       const color1 = analysisResult.dominantColors[0].color;
       const color2 = analysisResult.dominantColors[1].color;
       
-     
+      // Basit kontrast hesaplama (gerçek uygulamada daha gelişmiş olmalı)
       const contrast = calculateContrast(color1, color2);
       
       alert(`Kontrast Oranı: ${contrast.toFixed(2)}\n\n${contrast >= 4.5 ? '✅ WCAG AA uyumlu' : '❌ Kontrast yetersiz'}\n\nRenkler: ${color1} ve ${color2}`);
@@ -353,7 +348,7 @@ const AdminColorAnalysis = () => {
   };
 
   const calculateContrast = (color1, color2) => {
-   
+    // Basit kontrast hesaplama - gerçek uygulamada daha detaylı olmalı
     const lum1 = getLuminance(color1);
     const lum2 = getLuminance(color2);
     const brightest = Math.max(lum1, lum2);
@@ -383,12 +378,6 @@ const AdminColorAnalysis = () => {
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : null;
-  };
-
-  const simulateColorBlindness = () => {
-    if (analysisResult) {
-      alert('Renk körlüğü simülasyonu özelliği yakında eklenecek!\n\nBu özellik deuteranopia, protanopia ve tritanopia simülasyonları içerecek.');
-    }
   };
 
   const exportCSS = () => {
@@ -423,7 +412,7 @@ const AdminColorAnalysis = () => {
           <div>
             <h1 className="text-main mb-2"> 
               <i className="fa-solid fa-palette me-2"></i>
-              AI Renk Analizi
+              Renk Analizi
             </h1>
             <p className="text-gray mb-0">Ollama AI ile görsellerden renk paletleri çıkarın ve analiz edin</p>
           </div>
@@ -435,7 +424,7 @@ const AdminColorAnalysis = () => {
                 ? 'btn-success' 
                 : ollamaStatus?.success === false
                 ? 'btn-danger'
-                : 'btn-primary'
+                : 'btn btn-main'
             }`}
           >
             {testingOllama ? (
@@ -539,7 +528,7 @@ const AdminColorAnalysis = () => {
                   </div>
                   <div className="text-center mt-3">
                     <button 
-                      className="btn btn-main btn-lg me-3"
+                      className="btn btn-main me-3"
                       onClick={analyzeColorsWithAI}
                       disabled={isAnalyzing}
                     >
@@ -551,13 +540,13 @@ const AdminColorAnalysis = () => {
                       ) : (
                         <>
                           <i className="fas fa-palette me-2"></i>
-                          🤖 Ollama AI ile Renkleri Analiz Et
+                          Ollama AI ile Renkleri Analiz Et
                         </>
                       )}
                     </button>
                     {analysisResult && (
                       <button 
-                        className="btn btn-outline-main"
+                        className="btn btn-main"
                         onClick={retryAnalysis}
                         disabled={isAnalyzing}
                       >
@@ -820,13 +809,6 @@ const AdminColorAnalysis = () => {
                   </button>
                   <button 
                     className="btn btn-outline-main"
-                    onClick={editColorPalette}
-                  >
-                    <i className="fas fa-edit me-2"></i>
-                    Düzenle
-                  </button>
-                  <button 
-                    className="btn btn-outline-main"
                     onClick={shareColorPalette}
                   >
                     <i className="fas fa-share me-2"></i>
@@ -839,9 +821,9 @@ const AdminColorAnalysis = () => {
 
           {/* Analysis Progress */}
           {isAnalyzing && (
-            <div className="dashboard-card p-3">
+            <div className="dashboard-card mb-4 p-3">
               <div className="card-header pb-3">
-                <h5 className="card-title ">
+                <h5 className="card-title">
                   <i className="fas fa-cog fa-spin me-2"></i>
                   AI Renk Analizi Süreci
                 </h5>
@@ -979,21 +961,6 @@ const AdminColorAnalysis = () => {
                   </ul>
                 </div>
               </div>
-
-              <div className="quick-tools">
-                <button className="btn btn-outline-main w-100 mb-2">
-                  <i className="fas fa-eye-dropper me-2"></i>
-                  Renk Seçici
-                </button>
-                <button className="btn btn-outline-main w-100 mb-2">
-                  <i className="fas fa-adjust me-2"></i>
-                  Renk Harmonisi
-                </button>
-                <button className="btn btn-outline-main w-100">
-                  <i className="fas fa-palette me-2"></i>
-                  Palet Oluşturucu
-                </button>
-              </div>
             </div>
           </div>
 
@@ -1107,45 +1074,6 @@ const AdminColorAnalysis = () => {
                   </div>
                 </div>
               ))}
-              
-              <div className="text-center mt-3">
-                <button className="btn btn-outline-main btn-sm">
-                  <i className="fas fa-eye me-1"></i>
-                  Tümünü Görüntüle
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="dashboard-card mt-4 p-3">
-            <div className="card-header pb-3">
-              <h5 className="card-title">
-                <i className="fas fa-rocket me-2"></i>
-                Hızlı İşlemler
-              </h5>
-            </div>
-            <div className="card-body">
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-plus me-2"></i>
-                Toplu Renk Analizi
-              </button>
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-cogs me-2"></i>
-                AI Model Ayarları
-              </button>
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-download me-2"></i>
-                Analiz Geçmişi İndir
-              </button>
-              <button className="btn btn-outline-main w-100 mb-2">
-                <i className="fas fa-palette me-2"></i>
-                Renk Paleti Kütüphanesi
-              </button>
-              <button className="btn btn-outline-main w-100">
-                <i className="fas fa-question-circle me-2"></i>
-                Yardım & Destek
-              </button>
             </div>
           </div>
         </div>
@@ -1164,7 +1092,7 @@ const AdminColorAnalysis = () => {
               </div>
               <div className="card-body">
                 <div className="row">
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <div className="feature-card text-center p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)' }}>
                       <i className="fas fa-paint-brush text-primary mb-2" style={{ fontSize: '24px' }}></i>
                       <h6 className="text-dark fw-bold">Renk Gradyanı</h6>
@@ -1177,7 +1105,7 @@ const AdminColorAnalysis = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <div className="feature-card text-center p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)' }}>
                       <i className="fas fa-adjust text-warning mb-2" style={{ fontSize: '24px' }}></i>
                       <h6 className="text-dark fw-bold">Kontrast Kontrol</h6>
@@ -1190,20 +1118,7 @@ const AdminColorAnalysis = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="col-md-3">
-                    <div className="feature-card text-center p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)' }}>
-                      <i className="fas fa-eye text-success mb-2" style={{ fontSize: '24px' }}></i>
-                      <h6 className="text-dark fw-bold">Renk Körlüğü</h6>
-                      <small className="text-gray">Simülasyon ve test</small>
-                      <button 
-                        className="btn btn-sm btn-outline-main mt-2 w-100"
-                        onClick={simulateColorBlindness}
-                      >
-                        Simüle Et
-                      </button>
-                    </div>
-                  </div>
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <div className="feature-card text-center p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)' }}>
                       <i className="fas fa-code text-info mb-2" style={{ fontSize: '24px' }}></i>
                       <h6 className="text-dark fw-bold">CSS Export</h6>
@@ -1267,7 +1182,6 @@ const AdminColorAnalysis = () => {
                   <ul>
                     <li><strong>Gradyan Oluşturucu:</strong> Baskın renklerden otomatik CSS gradyanı</li>
                     <li><strong>Kontrast Testi:</strong> WCAG erişilebilirlik standartları</li>
-                    <li><strong>Renk Körlüğü:</strong> Deuteranopia, Protanopia simülasyonu</li>
                     <li><strong>CSS Export:</strong> Web projeleriniz için hazır kod</li>
                   </ul>
                 </div>

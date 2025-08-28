@@ -386,7 +386,7 @@ const EmployeeProfile = () => {
             <div className="card-body" style={{ padding: '24px' }}>
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-gray">Hesap Oluşturma</span>
-                <span className="text-dark fw-bold">01.01.2024</span>
+                <span className="text-dark fw-bold">25.08.2025</span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-gray">Son Giriş</span>
