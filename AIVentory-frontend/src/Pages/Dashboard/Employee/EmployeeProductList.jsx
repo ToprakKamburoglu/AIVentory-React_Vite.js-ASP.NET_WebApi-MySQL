@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth'; 
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const EmployeeProductList = () => {
   const { user } = useAuth(); 
-  
-  // State management
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,56 +94,95 @@ const EmployeeProductList = () => {
     }));
   };
 
-const handleExportCSV = () => {
-  if (!products || products.length === 0) return;
+  const handleExportExcel = async () => {
+    if (!products || products.length === 0) {
+      alert('Dışa aktarılacak ürün bulunamadı');
+      return;
+    }
 
-  
-  const headers = [
-    "Ürün Adı",
-    "Kategori",
-    "Marka",
-    "Fiyat",
-    "Maliyet",
-    "Stok",
-    "Minimum Stok",
-    "Barkod",
-    "Renk",
-    "Oluşturulma",
-    "Güncelleme"
-  ];
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Ürün Listesi');
 
-  
-  const rows = products.map(p => [
-    `"${p.name}"`,
-    `"${p.category}"`,
-    `"${p.brand}"`,
-    p.price,
-    p.cost,
-    p.stock,
-    p.minStock,
-    `"${p.barcode}"`,
-    `"${p.color}"`,
-    `"${p.createdDate}"`,
-    `"${p.lastUpdate}"`
-  ]);
+      worksheet.columns = [
+        { header: 'Sıra No', key: 'siraNo', width: 15 },
+        { header: 'Ürün Adı', key: 'urunAdi', width: 40 },
+        { header: 'Açıklama', key: 'aciklama', width: 50 },
+        { header: 'Kategori', key: 'kategori', width: 20 },
+        { header: 'Marka', key: 'marka', width: 20 },
+        { header: 'Renk', key: 'renk', width: 15 },
+        { header: 'Satış Fiyatı (TL)', key: 'satisFiyati', width: 20 },
+        { header: 'Maliyet Fiyatı (TL)', key: 'maliyetFiyati', width: 20 },
+        { header: 'Kar Marjı', key: 'karMarji', width: 15 },
+        { header: 'Kar Miktarı (TL)', key: 'karMiktari', width: 20 },
+        { header: 'Mevcut Stok', key: 'mevcutStok', width: 15 },
+        { header: 'Minimum Stok', key: 'minimumStok', width: 15 },
+        { header: 'Stok Durumu', key: 'stokDurumu', width: 15 },
+        { header: 'Toplam Değer (TL)', key: 'toplamDeger', width: 22 },
+        { header: 'Barkod', key: 'barkod', width: 25 },
+        { header: 'Oluşturulma Tarihi', key: 'olusturmaTarihi', width: 20 },
+        { header: 'Güncelleme Tarihi', key: 'guncellemeTarihi', width: 20 },
+        { header: 'Durum', key: 'durum', width: 12 }
+      ];
 
-  const csvContent = [
-    headers.join(","),
-    ...rows.map(r => r.join(","))
-  ].join("\n");
+      worksheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' } 
+      };
+      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).height = 30;
 
-  
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+      products.forEach((product, index) => {
+        const stockStatus = getStockStatus(product.stock, product.minStock);
+        const profitMargin = getProfitMargin(product.price, product.cost);
+        const profitAmount = (product.price - product.cost) || 0;
+        const totalValue = (product.price * product.stock) || 0;
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", "urunler.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+        const row = worksheet.addRow({
+          siraNo: index + 1,
+          urunAdi: product.name || '',
+          aciklama: product.description || '',
+          kategori: product.category || '',
+          marka: product.brand || '',
+          renk: product.color || '',
+          satisFiyati: product.price || 0,
+          maliyetFiyati: product.cost || 0,
+          karMarji: profitMargin,
+          karMiktari: profitAmount,
+          mevcutStok: product.stock || 0,
+          minimumStok: product.minStock || 0,
+          stokDurumu: stockStatus.text,
+          toplamDeger: totalValue,
+          barkod: product.barcode || '',
+          olusturmaTarihi: product.createdDate || '',
+          guncellemeTarihi: product.lastUpdate || '',
+          durum: 'Aktif'
+        });
+
+        row.alignment = { horizontal: 'center', vertical: 'middle' };
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, `urun_raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+      alert('Excel dosyası başarıyla oluşturuldu!');
+
+    } catch (error) {
+      console.error('Excel export hatası:', error);
+      alert('Excel dosyası oluşturulurken hata oluştu: ' + error.message);
+    }
+  };
 
   const setFallbackCategories = () => {
     const fallbackCategories = [
@@ -628,7 +668,7 @@ const handleExportCSV = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
-          <button className="btn btn-outline-secondary" onClick={handleExportCSV}>
+          <button className="btn btn-outline-secondary" onClick={handleExportExcel}>
             <i className="fas fa-download me-2"></i>
             Dışa Aktar
           </button>

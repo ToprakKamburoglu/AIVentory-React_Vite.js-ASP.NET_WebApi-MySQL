@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const EmployeeStockUpdate = () => {
   const { user } = useAuth();
   
-
   const [stockData, setStockData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -111,7 +112,361 @@ const EmployeeStockUpdate = () => {
     }
   };
 
- 
+  const handleExportStockTemplate = async () => {
+  if (!stockData || stockData.length === 0) {
+    alert('Dışa aktarılacak stok verisi bulunamadı');
+    return;
+  }
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    
+    const worksheet = workbook.addWorksheet('Stok Listesi');
+
+    worksheet.columns = [
+      { header: 'Sıra No', key: 'siraNo', width: 10 },
+      { header: 'Ürün ID', key: 'urunId', width: 12 },
+      { header: 'Ürün Adı', key: 'urunAdi', width: 35 },
+      { header: 'Kategori', key: 'kategori', width: 18 },
+      { header: 'Marka', key: 'marka', width: 18 },
+      { header: 'Barkod', key: 'barkod', width: 20 },
+      { header: 'Current Stock', key: 'currentStock', width: 15 },
+      { header: 'Reserved Stock', key: 'reservedStock', width: 15 },
+      { header: 'Available Stock', key: 'availableStock', width: 18 },
+      { header: 'Minimum Stock', key: 'minimumStock', width: 15 },
+      { header: 'Stok Durumu', key: 'stokDurumu', width: 15 },
+      { header: 'Birim Fiyat (TL)', key: 'birimFiyat', width: 18 },
+      { header: 'Stok Değeri (TL)', key: 'stokDegeri', width: 18 },
+      { header: 'Son Güncelleme', key: 'sonGuncelleme', width: 18 },
+      { header: 'Şirket ID', key: 'companyId', width: 12 }
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(1).height = 35;
+
+    stockData.forEach((item, index) => {
+      const stokDegeri = (item.currentStock || 0) * (item.price || 0);
+      
+      const row = worksheet.addRow({
+        siraNo: index + 1,
+        urunId: item.id,
+        urunAdi: item.productName || '',
+        kategori: item.category || '',
+        marka: item.brand || '',
+        barkod: item.barcode || '',
+        currentStock: item.currentStock || 0,
+        reservedStock: item.reservedStock || 0,
+        availableStock: item.availableStock || 0,
+        minimumStock: item.minimumStock || 0,
+        stokDurumu: getStockStatusText(item.stockStatus),
+        birimFiyat: item.price || 0,
+        stokDegeri: stokDegeri,
+        sonGuncelleme: item.lastStockUpdate || '',
+        companyId: item.companyId
+      });
+
+      row.alignment = { horizontal: 'center', vertical: 'middle' };
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+
+        if (colNumber === 12 || colNumber === 13) { 
+          cell.numFmt = '#,##0.00" TL"';
+        }
+
+        if (colNumber === 11) { 
+          const status = item.stockStatus;
+          if (status === 'out_of_stock') {
+            cell.font = { color: { argb: 'FFFF0000' }, bold: true };
+          } else if (status === 'low_stock' || status === 'critical') {
+            cell.font = { color: { argb: 'FFFF9800' }, bold: true };
+          } else if (status === 'in_stock') {
+            cell.font = { color: { argb: 'FF4CAF50' }, bold: true };
+          }
+        }
+
+        if (colNumber >= 7 && colNumber <= 10) { 
+          if (colNumber === 7) { 
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFE3F2FD' }
+            };
+          } else if (colNumber === 8) { 
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFF3E0' }
+            };
+          } else if (colNumber === 9) { 
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFE8F5E9' }
+            };
+          } else if (colNumber === 10) { 
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF3E5F5' }
+            };
+          }
+        }
+      });
+    });
+
+    const summarySheet = workbook.addWorksheet('Özet');
+    
+    summarySheet.columns = [
+      { header: 'Bilgi', key: 'bilgi', width: 30 },
+      { header: 'Değer', key: 'deger', width: 35 }
+    ];
+
+    summarySheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    summarySheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    summarySheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    summarySheet.getRow(1).height = 30;
+
+    const totalCurrentStock = stockData.reduce((total, item) => total + (item.currentStock || 0), 0);
+    const totalReservedStock = stockData.reduce((total, item) => total + (item.reservedStock || 0), 0);
+    const totalAvailableStock = stockData.reduce((total, item) => total + (item.availableStock || 0), 0);
+    const totalStockValue = stockData.reduce((total, item) => total + ((item.currentStock || 0) * (item.price || 0)), 0);
+    const criticalStockCount = stockData.filter(item => ['out_of_stock', 'low_stock', 'critical'].includes(item.stockStatus)).length;
+    const normalStockCount = stockData.filter(item => item.stockStatus === 'in_stock').length;
+
+    const categoryStats = stockData.reduce((acc, item) => {
+      const category = item.category || 'Kategorisiz';
+      if (!acc[category]) {
+        acc[category] = { count: 0, value: 0 };
+      }
+      acc[category].count++;
+      acc[category].value += (item.currentStock || 0) * (item.price || 0);
+      return acc;
+    }, {});
+
+    const topCategory = Object.entries(categoryStats)
+      .sort(([,a], [,b]) => b.value - a.value)[0];
+
+    const summaryData = [
+      { bilgi: 'Toplam Ürün Sayısı', deger: stockData.length },
+      { bilgi: 'Toplam Current Stock', deger: totalCurrentStock.toLocaleString('tr-TR') + ' Adet' },
+      { bilgi: 'Toplam Reserved Stock', deger: totalReservedStock.toLocaleString('tr-TR') + ' Adet' },
+      { bilgi: 'Toplam Available Stock', deger: totalAvailableStock.toLocaleString('tr-TR') + ' Adet' },
+      { bilgi: 'Toplam Stok Değeri', deger: totalStockValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' TL' },
+      { bilgi: 'Kritik Stok Ürün Sayısı', deger: criticalStockCount + ' (' + ((criticalStockCount / stockData.length) * 100).toFixed(1) + '%)' },
+      { bilgi: 'Normal Stok Ürün Sayısı', deger: normalStockCount + ' (' + ((normalStockCount / stockData.length) * 100).toFixed(1) + '%)' },
+      { bilgi: 'En Değerli Kategori', deger: topCategory ? `${topCategory[0]} (${topCategory[1].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL)` : 'N/A' },
+      { bilgi: '', deger: '' },
+      { bilgi: 'Şirket Adı', deger: user.companyName || 'N/A' },
+      { bilgi: 'Kullanıcı', deger: user.name || user.email || 'N/A' },
+      { bilgi: 'Rapor Tarihi', deger: new Date().toLocaleDateString('tr-TR') },
+      { bilgi: 'Rapor Saati', deger: new Date().toLocaleTimeString('tr-TR') },
+      { bilgi: 'Toplam Sayfa Sayısı', deger: totalItems || stockData.length }
+    ];
+
+    summaryData.forEach((data, index) => {
+      const row = summarySheet.addRow(data);
+      
+      if (data.bilgi === '') {
+        row.height = 10;
+        return;
+      }
+      
+      row.alignment = { horizontal: 'center', vertical: 'middle' };
+      row.height = 25;
+      
+      if (index >= 9) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF0F9FF' }
+        };
+      }
+      
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
+
+    const categorySheet = workbook.addWorksheet('Kategori Analizi');
+    
+    categorySheet.columns = [
+      { header: 'Kategori', key: 'kategori', width: 25 },
+      { header: 'Ürün Sayısı', key: 'urunSayisi', width: 15 },
+      { header: 'Toplam Current Stock', key: 'toplamStok', width: 20 },
+      { header: 'Toplam Değer (TL)', key: 'toplamDeger', width: 20 },
+      { header: 'Ortalama Stok/Ürün', key: 'ortalamaStok', width: 20 },
+      { header: 'Pay (%)', key: 'pay', width: 12 }
+    ];
+
+    categorySheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    categorySheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    categorySheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    categorySheet.getRow(1).height = 30;
+
+    Object.entries(categoryStats)
+      .sort(([,a], [,b]) => b.value - a.value)
+      .forEach(([category, stats]) => {
+        const categoryItems = stockData.filter(item => (item.category || 'Kategorisiz') === category);
+        const totalStock = categoryItems.reduce((sum, item) => sum + (item.currentStock || 0), 0);
+        const averageStock = stats.count > 0 ? totalStock / stats.count : 0;
+        const percentage = totalStockValue > 0 ? (stats.value / totalStockValue * 100) : 0;
+        
+        const row = categorySheet.addRow({
+          kategori: category,
+          urunSayisi: stats.count,
+          toplamStok: totalStock,
+          toplamDeger: stats.value,
+          ortalamaStok: averageStock,
+          pay: percentage
+        });
+
+        row.alignment = { horizontal: 'center', vertical: 'middle' };
+        row.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+
+          if (colNumber === 4) {
+            cell.numFmt = '#,##0.00" TL"';
+          }
+
+          if (colNumber === 3 || colNumber === 5) {
+            cell.numFmt = '#,##0.0';
+          }
+
+          if (colNumber === 6) {
+            cell.numFmt = '0.0"%"';
+          }
+        });
+      });
+
+    const statusSheet = workbook.addWorksheet('Stok Durum Analizi');
+    
+    statusSheet.columns = [
+      { header: 'Stok Durumu', key: 'stokDurumu', width: 20 },
+      { header: 'Ürün Sayısı', key: 'urunSayisi', width: 15 },
+      { header: 'Toplam Stok', key: 'toplamStok', width: 15 },
+      { header: 'Toplam Değer (TL)', key: 'toplamDeger', width: 20 },
+      { header: 'Yüzde (%)', key: 'yuzde', width: 15 }
+    ];
+
+    statusSheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    statusSheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+    statusSheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    statusSheet.getRow(1).height = 30;
+
+    const statusStats = [
+      { 
+        status: 'in_stock', 
+        text: 'Normal Stok', 
+        color: 'FF4CAF50',
+        items: stockData.filter(item => item.stockStatus === 'in_stock')
+      },
+      { 
+        status: 'low_stock', 
+        text: 'Düşük Stok', 
+        color: 'FFFF9800',
+        items: stockData.filter(item => item.stockStatus === 'low_stock')
+      },
+      { 
+        status: 'critical', 
+        text: 'Kritik Stok', 
+        color: 'FFFF5722',
+        items: stockData.filter(item => item.stockStatus === 'critical')
+      },
+      { 
+        status: 'out_of_stock', 
+        text: 'Tükenen Stok', 
+        color: 'FFFF0000',
+        items: stockData.filter(item => item.stockStatus === 'out_of_stock')
+      }
+    ];
+
+    statusStats.forEach(statusInfo => {
+      const totalStock = statusInfo.items.reduce((sum, item) => sum + (item.currentStock || 0), 0);
+      const totalValue = statusInfo.items.reduce((sum, item) => sum + ((item.currentStock || 0) * (item.price || 0)), 0);
+      const percentage = stockData.length > 0 ? (statusInfo.items.length / stockData.length * 100) : 0;
+      
+      const row = statusSheet.addRow({
+        stokDurumu: statusInfo.text,
+        urunSayisi: statusInfo.items.length,
+        toplamStok: totalStock,
+        toplamDeger: totalValue,
+        yuzde: percentage
+      });
+
+      row.alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+
+        if (colNumber === 1) {
+          cell.font = { color: { argb: statusInfo.color }, bold: true };
+        }
+
+        if (colNumber === 4) {
+          cell.numFmt = '#,##0.00" TL"';
+        }
+
+        if (colNumber === 5) {
+          cell.numFmt = '0.0"%"';
+        }
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    
+    const fileName = `stok_raporu_${user.companyName || 'sirket'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    saveAs(blob, fileName);
+
+    alert('Stok raporu Excel dosyası başarıyla oluşturuldu!');
+
+  } catch (error) {
+    console.error('Excel export hatası:', error);
+    alert('Excel dosyası oluşturulurken hata oluştu: ' + error.message);
+  }
+};
+
+
   const handleCurrentStockUpdate = async (productId, newCurrentStock) => {
     const stockItem = stockData.find(item => item.id === productId);
     
@@ -1056,19 +1411,20 @@ const EmployeeStockUpdate = () => {
                 </div>
                 
                 <div className="col-md-4">
-                  <div className="tip-item p-3 border-start border-success border-4 bg-success bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
-                      style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
-                  >
-                    <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                        style={{width: '40px', height: '40px'}}>
-                      <i className="fas fa-upload"></i>
-                    </div>
-                    <div>
-                      <div className="fw-semibold text-success mb-1">Excel'den Toplu Yükle</div>
-                      <small className="text-muted">Excel dosyasından toplu stok güncelleme</small>
-                    </div>
+                <div className="tip-item p-3 border-start border-success border-4 bg-success bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-start h-100 hover-effect"
+                    onClick={handleExportStockTemplate}
+                    style={{cursor: 'pointer', transition: 'all 0.3s ease'}}
+                >
+                  <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                      style={{width: '40px', height: '40px'}}>
+                    <i className="fas fa-download"></i>
+                  </div>
+                  <div>
+                    <div className="fw-semibold text-success mb-1">Excel Şablonu İndir</div>
+                    <small className="text-muted">Toplu güncelleme için Excel şablonu</small>
                   </div>
                 </div>
+              </div>
                 
                 <div className="col-md-4">
                   <Link 

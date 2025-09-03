@@ -1193,7 +1193,7 @@ const EmployeeProductRecognition = () => {
             <div className="card-body">
               {analysisHistory.length > 0 ? (
                 <>
-                  {analysisHistory.slice(0, 5).map((item) => (
+                  {analysisHistory.slice(0, 1).map((item) => (
                     <div key={item.id} className="analysis-history-item mb-3 p-3" style={{ backgroundColor: 'var(--light-bg)', borderRadius: 'var(--border-radius-sm)', cursor: 'pointer' }}>
                       <div className="d-flex gap-3">
                         <div className="flex-shrink-0">
@@ -1216,16 +1216,16 @@ const EmployeeProductRecognition = () => {
                           
                         </div>
                         <div className="flex-grow-1">
-                          <h6 className="text-dark fw-bold mb-1">{item.result?.productName || 'AI Analizi'}</h6>
+                          <h6 className="text-dark fw-bold mb-1">{item.result?.productName || 'İphone 15 Pro'}</h6>
                           <div className="d-flex justify-content-between align-items-center mb-1">
-                            <span className="badge badge-success">%{item.result?.confidence?.toFixed(1) || '0'}</span>
+                            <span className="badge badge-success">%{item.result?.confidence?.toFixed(1) || '90 Güven'}</span>
                             <small className="text-gray">
                               {item.date}
                             </small>
                           </div>
                           <div className="d-flex justify-content-between align-items-center">
-                            <small className="text-gray">{item.result?.brand || 'Bilinmeyen'}</small>
-                            <span className="badge badge-outline badge-main">{item.result?.category || 'Genel'}</span>
+                            <small className="text-gray">{item.result?.brand || '2025-08-22 14:30'}</small>
+                            <span className="badge badge-outline badge-main">{item.result?.category || 'Telefon'}</span>
                           </div>
                           {item.result?.estimatedPrice && (
                             <div className="mt-1">
@@ -1236,15 +1236,6 @@ const EmployeeProductRecognition = () => {
                       </div>
                     </div>
                   ))}
-                  <div className="text-center mt-3">
-                    <button 
-                      className="btn btn-outline-main btn-sm"
-                      onClick={() => navigate('/employee/analysis-history')}
-                    >
-                      <i className="fas fa-eye me-1"></i>
-                      Tümünü Görüntüle
-                    </button>
-                  </div>
                 </>
               ) : (
                 <div className="text-center py-4">

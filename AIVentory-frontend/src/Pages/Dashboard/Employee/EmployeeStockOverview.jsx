@@ -15,7 +15,6 @@ const EmployeeStockOverview = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
   
- 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -282,7 +281,225 @@ const EmployeeStockOverview = () => {
     loadStockData(currentPage);
   };
 
- 
+  // handleExportExcel fonksiyonunun yerine veya yanına bu fonksiyonu ekleyin:
+  const handlePrintReport = () => {
+    // Yazdırılacak içeriği oluştur
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Stok Raporu - ${user.companyName || 'Şirket'}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+          }
+          .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+          }
+          .header p {
+            font-size: 14px;
+            color: #666;
+          }
+          .summary {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+          }
+          .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+          }
+          .summary-item {
+            text-align: center;
+          }
+          .summary-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+          .summary-item .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+          }
+          th {
+            background-color: #4472C4;
+            color: white;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: bold;
+          }
+          td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+          }
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .text-center {
+            text-align: center;
+          }
+          .text-right {
+            text-align: right;
+          }
+          .status-kritik {
+            color: #dc3545;
+            font-weight: bold;
+          }
+          .status-dusuk {
+            color: #ffc107;
+            font-weight: bold;
+          }
+          .status-normal {
+            color: #28a745;
+            font-weight: bold;
+          }
+          .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          @media print {
+            body {
+              padding: 10px;
+            }
+            .summary {
+              break-inside: avoid;
+            }
+            table {
+              font-size: 10px;
+            }
+            th, td {
+              padding: 5px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>STOK RAPORU</h1>
+          <p><strong>${user.companyName || 'Şirket Adı'}</strong></p>
+          <p>Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR')}</p>
+          <p>Raporu Oluşturan: ${user.name || user.email}</p>
+        </div>
+
+        <div class="summary">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="label">Toplam Ürün</div>
+              <div class="value">${totalItems}</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Normal Stok</div>
+              <div class="value" style="color: #28a745;">${statusCounts.good}</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Kritik Stok</div>
+              <div class="value" style="color: #dc3545;">${statusCounts.critical + statusCounts.out}</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Toplam Değer</div>
+              <div class="value">₺${getTotalValue().toLocaleString('tr-TR')}</div>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Ürün Adı</th>
+              <th>Kategori</th>
+              <th>Marka</th>
+              <th class="text-center">Mevcut</th>
+              <th class="text-center">Rezerve</th>
+              <th class="text-center">Kullanılabilir</th>
+              <th class="text-center">Min.</th>
+              <th class="text-center">Durum</th>
+              <th class="text-right">Birim Fiyat</th>
+              <th class="text-right">Toplam Değer</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${stockData.map((item, index) => {
+              const statusInfo = getStockStatusInfo(item.status);
+              const statusClass = 
+                item.status === 'in_stock' ? 'status-normal' : 
+                item.status === 'low_stock' || item.status === 'critical' ? 'status-dusuk' : 
+                'status-kritik';
+              
+              return `
+                <tr>
+                  <td class="text-center">${index + 1}</td>
+                  <td><strong>${item.name}</strong>${item.barcode ? `<br><small>Barkod: ${item.barcode}</small>` : ''}</td>
+                  <td>${item.category}</td>
+                  <td>${item.brand || '-'}</td>
+                  <td class="text-center">${item.currentStock}</td>
+                  <td class="text-center">${item.reservedStock}</td>
+                  <td class="text-center"><strong>${item.availableStock}</strong></td>
+                  <td class="text-center">${item.minStock}</td>
+                  <td class="text-center ${statusClass}">${statusInfo.text}</td>
+                  <td class="text-right">₺${item.price.toLocaleString('tr-TR')}</td>
+                  <td class="text-right"><strong>₺${item.totalValue.toLocaleString('tr-TR')}</strong></td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="font-weight: bold; background-color: #f0f0f0;">
+              <td colspan="9" class="text-right">TOPLAM DEĞER:</td>
+              <td colspan="2" class="text-right" style="font-size: 14px;">₺${getTotalValue().toLocaleString('tr-TR')}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="footer">
+          <p>Bu rapor ${new Date().toLocaleDateString('tr-TR')} tarihinde ${new Date().toLocaleTimeString('tr-TR')} saatinde oluşturulmuştur.</p>
+          <p>© ${new Date().getFullYear()} ${user.companyName || 'Şirket'} - Tüm hakları saklıdır.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Yeni pencere aç ve yazdır
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Pencere yüklendikten sonra yazdır
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+      // Yazdırma işleminden sonra pencereyi kapat (opsiyonel)
+      // printWindow.close();
+    };
+  };
+
   const PaginationComponent = () => {
     if (totalPages <= 1) return null;
 
@@ -419,7 +636,7 @@ const EmployeeStockOverview = () => {
             <i className="fas fa-sync-alt me-2"></i>
             Yenile
           </button>
-          <button className="btn btn-outline-secondary">
+          <button className="btn btn-outline-secondary" onClick={handlePrintReport}>
             <i className="fa-solid fa-file-export me-2"></i>
             Stok Raporu
           </button>
