@@ -119,7 +119,7 @@ const EmployeeStockUpdate = () => {
   }
 
   try {
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new ExcelJS.Workbook(); 
     
     const worksheet = workbook.addWorksheet('Stok Listesi');
 

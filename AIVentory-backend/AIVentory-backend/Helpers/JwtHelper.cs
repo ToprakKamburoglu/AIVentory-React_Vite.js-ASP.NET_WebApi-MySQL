@@ -26,7 +26,7 @@ namespace AIVentory_backend.Helpers
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Role, user.Role.ToString().ToLower()),
-                new Claim("CompanyId", user.CompanyId.ToString())
+                new Claim("CompanyId", user.CompanyId.ToString()) 
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

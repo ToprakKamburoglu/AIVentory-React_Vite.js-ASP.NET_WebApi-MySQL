@@ -3,20 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\controllers\\stockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\controllers\\stockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\services\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\services\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\services\\implementations\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\services\\implementations\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\data\\configurations\\userconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\data\\configurations\\userconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|c:\\users\\topra\\onedrive - kadir has university\\belgeler\\github\\aiventory-react_vite.js-asp.net_webapi-mysql\\aiventory-backend\\aiventory-backend\\controllers\\basecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{12E5E8C2-DA11-46B2-8D33-C3160F55D3D9}|AIVentory-backend\\AIVentory-backend.csproj|solutionrelative:aiventory-backend\\controllers\\basecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -39,53 +31,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\appsettings.json",
-              "RelativeDocumentMoniker": "AIVentory-backend\\appsettings.json",
-              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\appsettings.json",
-              "RelativeToolTip": "AIVentory-backend\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAiAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-09-03T19:54:40.837Z",
+              "Title": "StockController.cs",
+              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Controllers\\StockController.cs",
+              "RelativeDocumentMoniker": "AIVentory-backend\\Controllers\\StockController.cs",
+              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Controllers\\StockController.cs",
+              "RelativeToolTip": "AIVentory-backend\\Controllers\\StockController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIIAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-04T08:42:54.44Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "IEmailService.cs",
-              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Services\\Interfaces\\IEmailService.cs",
-              "RelativeDocumentMoniker": "AIVentory-backend\\Services\\Interfaces\\IEmailService.cs",
-              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Services\\Interfaces\\IEmailService.cs",
-              "RelativeToolTip": "AIVentory-backend\\Services\\Interfaces\\IEmailService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
+              "Title": "BaseController.cs",
+              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Controllers\\BaseController.cs",
+              "RelativeDocumentMoniker": "AIVentory-backend\\Controllers\\BaseController.cs",
+              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Controllers\\BaseController.cs",
+              "RelativeToolTip": "AIVentory-backend\\Controllers\\BaseController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-03T19:54:16.815Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "UserConfiguration.cs",
-              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Data\\Configurations\\UserConfiguration.cs",
-              "RelativeDocumentMoniker": "AIVentory-backend\\Data\\Configurations\\UserConfiguration.cs",
-              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Data\\Configurations\\UserConfiguration.cs",
-              "RelativeToolTip": "AIVentory-backend\\Data\\Configurations\\UserConfiguration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-03T19:51:50.224Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "EmailService.cs",
-              "DocumentMoniker": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Services\\Implementations\\EmailService.cs",
-              "RelativeDocumentMoniker": "AIVentory-backend\\Services\\Implementations\\EmailService.cs",
-              "ToolTip": "C:\\Users\\topra\\OneDrive - Kadir Has University\\Belgeler\\GitHub\\AIVentory-React_Vite.js-ASP.NET_WebApi-MySQL\\AIVentory-backend\\AIVentory-backend\\Services\\Implementations\\EmailService.cs",
-              "RelativeToolTip": "AIVentory-backend\\Services\\Implementations\\EmailService.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAuwBsAAABqAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-03T19:51:26.901Z",
+              "WhenOpened": "2025-09-04T08:25:41.951Z",
               "EditorCaption": ""
             }
           ]

@@ -9,7 +9,23 @@ namespace AIVentory_backend.Controllers
     [Authorize] 
     public class BaseController : ControllerBase
     {
-       
+     
+        
+        protected int CurrentUserId
+        {
+            get
+            {
+                var userIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    return userId;
+                }
+                throw new UnauthorizedAccessException("Kullanıcı ID'si alınamadı");
+            }
+
+        }
+
+
         protected int GetUserId()
         {
             var userIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
